@@ -1,5 +1,5 @@
 import { useAppStore } from '../../store';
-import { Map, Plane, Bus, Navigation, Star } from 'lucide-react';
+import { Map, Plane, Bus, Star } from 'lucide-react';
 
 export default function TravelerDashboard() {
   const { plans, currentUser } = useAppStore();

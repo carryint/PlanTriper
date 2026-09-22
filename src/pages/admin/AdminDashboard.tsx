@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAppStore } from '../../store';
-import { Settings, Palette, CheckCircle, XCircle, Image as ImageIcon } from 'lucide-react';
-import { Service } from '../../types';
+import { Palette, CheckCircle, XCircle, Image as ImageIcon } from 'lucide-react';
+import type { Service } from '../../types';
 
 export default function AdminDashboard() {
   const { theme, setTheme, services, updateServiceStatus } = useAppStore();

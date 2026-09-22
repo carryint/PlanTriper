@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAppStore } from './store';
-import { seedUsers, seedServices, seedPlans } from './data/seed';
+import { seedServices, seedPlans } from './data/seed';
 import Layout from './components/Layout';
 import Login from './pages/Login';
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -22,7 +22,7 @@ function App() {
   }, [plans.length, services.length, addPlan, addService]);
 
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/Cartoon-Maker">
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<Login />} />

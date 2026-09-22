@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { User, AppTheme, Service, TripPlan } from '../types';
+import type { User, AppTheme, Service, TripPlan } from '../types';
 
 interface AppState {
   currentUser: User | null;

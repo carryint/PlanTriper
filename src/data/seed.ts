@@ -1,4 +1,4 @@
-import { TripPlan, Service, User } from '../types';
+import type { TripPlan, Service, User } from '../types';
 
 export const seedUsers: User[] = [
   { id: 'admin1', name: 'Super Admin', email: 'admin@plantriper.com', role: 'admin' },

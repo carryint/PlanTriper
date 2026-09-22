@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppStore } from '../store';
 import { seedUsers } from '../data/seed';
@@ -27,8 +26,7 @@ export default function Login() {
           </div>
           <h1 className="text-3xl font-bold text-slate-800">PlanTriper</h1>
           <p className="text-slate-500 text-center mt-2">
-            Create Characters. Tell Stories... Wait no, <br/>
-            Plan your next adventure with ease.
+            Plan your next trip route and spots easily.
           </p>
         </div>
 
