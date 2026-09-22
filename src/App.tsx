@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAppStore } from './store';
 import { seedServices, seedPlans } from './data/seed';
@@ -10,16 +10,25 @@ import ProviderDashboard from './pages/provider/ProviderDashboard';
 
 function App() {
   const { plans, addPlan, services, addService } = useAppStore();
+  const initialized = useRef(false);
 
-  // Bootstrap seed data if store is empty
+  // Bootstrap seed data once if store is empty without duplicate keys
   useEffect(() => {
-    if (plans.length === 0) {
-      seedPlans.forEach(plan => addPlan(plan));
-    }
-    if (services.length === 0) {
-      seedServices.forEach(service => addService(service));
-    }
-  }, [plans.length, services.length, addPlan, addService]);
+    if (initialized.current) return;
+    initialized.current = true;
+
+    seedPlans.forEach((plan) => {
+      if (!plans.some((p) => p.id === plan.id)) {
+        addPlan(plan);
+      }
+    });
+
+    seedServices.forEach((service) => {
+      if (!services.some((s) => s.id === service.id)) {
+        addService(service);
+      }
+    });
+  }, [plans, services, addPlan, addService]);
 
   return (
     <BrowserRouter basename="/PlanTriper">
