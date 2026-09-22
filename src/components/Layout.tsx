@@ -1,18 +1,19 @@
 import { useEffect } from 'react';
 import { Outlet, useNavigate, Link } from 'react-router-dom';
-import { useAppStore } from '../store';
+import { useAppStore, defaultTheme } from '../store';
 import { LogOut, Map, LayoutDashboard, Settings } from 'lucide-react';
 
 export default function Layout() {
-  const { theme, currentUser, logout } = useAppStore();
+  const { theme = defaultTheme, currentUser, logout } = useAppStore();
   const navigate = useNavigate();
 
-  // Apply dynamic theme variables
+  // Apply dynamic theme variables safely
   useEffect(() => {
     const root = document.documentElement;
-    root.style.setProperty('--brand-main', theme.primaryColor);
-    root.style.setProperty('--gradient-start', theme.gradientStart);
-    root.style.setProperty('--gradient-end', theme.gradientEnd);
+    const activeTheme = theme || defaultTheme;
+    root.style.setProperty('--brand-main', activeTheme.primaryColor || '#3b82f6');
+    root.style.setProperty('--gradient-start', activeTheme.gradientStart || '#3b82f6');
+    root.style.setProperty('--gradient-end', activeTheme.gradientEnd || '#8b5cf6');
   }, [theme]);
 
   const handleLogout = () => {
@@ -20,18 +21,22 @@ export default function Layout() {
     navigate('/');
   };
 
+  const activeTheme = theme || defaultTheme;
+  const gradientStart = activeTheme.gradientStart || '#3b82f6';
+  const gradientEnd = activeTheme.gradientEnd || '#8b5cf6';
+
   return (
     <div className="min-h-screen flex flex-col bg-slate-50">
       <header 
-        className="text-white shadow-md"
+        className="text-white shadow-md transition-colors"
         style={{
-          background: `linear-gradient(to right, var(--gradient-start), var(--gradient-end))`
+          background: `linear-gradient(to right, ${gradientStart}, ${gradientEnd})`
         }}
       >
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            {theme.logoUrl ? (
-              <img src={theme.logoUrl} alt="PlanTriper Logo" className="h-8 w-8 object-contain" />
+            {activeTheme.logoUrl ? (
+              <img src={activeTheme.logoUrl} alt="PlanTriper Logo" className="h-8 w-8 object-contain rounded" />
             ) : (
               <Map className="w-8 h-8" />
             )}
@@ -43,22 +48,22 @@ export default function Layout() {
           <nav className="flex items-center gap-6">
             {currentUser ? (
               <>
-                <span className="text-sm font-medium opacity-90">
+                <span className="text-sm font-medium opacity-90 hidden sm:inline">
                   Welcome, {currentUser.name} ({currentUser.role})
                 </span>
                 
                 {currentUser.role === 'admin' && (
-                  <Link to="/admin" className="flex items-center gap-2 hover:opacity-80 transition">
+                  <Link to="/admin" className="flex items-center gap-2 hover:opacity-80 transition text-sm font-medium">
                     <Settings className="w-4 h-4" /> Admin
                   </Link>
                 )}
                 {currentUser.role === 'provider' && (
-                  <Link to="/provider" className="flex items-center gap-2 hover:opacity-80 transition">
-                    <LayoutDashboard className="w-4 h-4" /> Provider Dashboard
+                  <Link to="/provider" className="flex items-center gap-2 hover:opacity-80 transition text-sm font-medium">
+                    <LayoutDashboard className="w-4 h-4" /> Provider
                   </Link>
                 )}
                 {currentUser.role === 'traveler' && (
-                  <Link to="/traveler" className="flex items-center gap-2 hover:opacity-80 transition">
+                  <Link to="/traveler" className="flex items-center gap-2 hover:opacity-80 transition text-sm font-medium">
                     <LayoutDashboard className="w-4 h-4" /> My Plans
                   </Link>
                 )}

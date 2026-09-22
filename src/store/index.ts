@@ -16,9 +16,10 @@ interface AppState {
   updateServiceStatus: (id: string, status: 'approved' | 'rejected') => void;
   addPlan: (plan: TripPlan) => void;
   updatePlan: (id: string, updates: Partial<TripPlan>) => void;
+  resetAll: () => void;
 }
 
-const defaultTheme: AppTheme = {
+export const defaultTheme: AppTheme = {
   primaryColor: '#3b82f6',
   gradientStart: '#3b82f6',
   gradientEnd: '#8b5cf6',
@@ -37,31 +38,53 @@ export const useAppStore = create<AppState>()(
       logout: () => set({ currentUser: null }),
       
       setTheme: (themeUpdates) => set((state) => ({ 
-        theme: { ...state.theme, ...themeUpdates } 
+        theme: { ...(state.theme || defaultTheme), ...themeUpdates } 
       })),
       
       addService: (service) => set((state) => ({ 
-        services: [...state.services, service] 
+        services: [...(state.services || []), service] 
       })),
       
       updateServiceStatus: (id, status) => set((state) => ({
-        services: state.services.map((s) => 
+        services: (state.services || []).map((s) => 
           s.id === id ? { ...s, status } : s
         )
       })),
       
       addPlan: (plan) => set((state) => ({
-        plans: [...state.plans, plan]
+        plans: [...(state.plans || []), plan]
       })),
       
       updatePlan: (id, updates) => set((state) => ({
-        plans: state.plans.map((p) =>
+        plans: (state.plans || []).map((p) =>
           p.id === id ? { ...p, ...updates } : p
         )
-      }))
+      })),
+
+      resetAll: () => {
+        localStorage.removeItem('plantriper-storage');
+        set({
+          currentUser: null,
+          theme: defaultTheme,
+          services: [],
+          plans: []
+        });
+      }
     }),
     {
-      name: 'plantriper-storage'
+      name: 'plantriper-storage',
+      merge: (persistedState: any, currentState) => {
+        return {
+          ...currentState,
+          ...(persistedState || {}),
+          theme: {
+            ...defaultTheme,
+            ...(persistedState?.theme || {})
+          },
+          services: persistedState?.services || [],
+          plans: persistedState?.plans || [],
+        };
+      }
     }
   )
 );
