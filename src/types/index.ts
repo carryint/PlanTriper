@@ -5,7 +5,7 @@ export interface User {
   name: string;
   email: string;
   role: UserRole;
-  points?: number; // For travelers: Van, Flight, Bike points
+  points?: number;
 }
 
 export type ServiceType = 'hotel' | 'restaurant' | 'rental' | 'spot';
@@ -27,7 +27,7 @@ export interface Service {
   priceLevel?: string;
   pricePerDay?: number;
   description: string;
-  images: string[]; // Base64 data URLs or image URLs (PNG, JPEG supported)
+  images: string[];
   googleMapUrl?: string;
   featured?: boolean;
   createdAt: string;
@@ -73,6 +73,7 @@ export interface ItineraryItem {
   visited: boolean;
   cost: number;
   bookingUrl?: string;
+  imageUrl?: string;
 }
 
 export interface ItineraryDay {
@@ -96,6 +97,11 @@ export interface TripPlan {
   itinerary: ItineraryDay[];
   totalExpenses: number;
   rewardPointsEarned: number;
+  coverImage?: string;
+  sourceFile?: string;
+  sourceFileType?: 'pdf' | 'docx' | 'zip' | 'text' | 'manual';
+  isCuratedByAdmin?: boolean;
+  notes?: string;
 }
 
 export interface ShareLink {

@@ -3,13 +3,14 @@ import { useAppStore } from '../../store';
 import { 
   Compass, MapPin, Sparkles, Building, Utensils, Bike, Star, 
   Phone, Globe, Check, DollarSign, 
-  Plane, Bus, Search, ArrowRight, ExternalLink
+  Plane, Bus, Search, ArrowRight, ExternalLink,
+  Calendar, Users, BookmarkPlus, X, FileText, CheckCircle2
 } from 'lucide-react';
 import { AITripPlannerModal } from '../../components/planner/AITripPlannerModal';
-import type { ServiceType } from '../../types';
+import type { ServiceType, TripPlan } from '../../types';
 
 export default function TravelerPortal() {
-  const { destinations, services, plans, adBanners, toggleItemVisited, deletePlan } = useAppStore();
+  const { destinations, services, plans, adBanners, toggleItemVisited, deletePlan, addPlan } = useAppStore();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
@@ -18,6 +19,10 @@ export default function TravelerPortal() {
   const [isPlannerOpen, setIsPlannerOpen] = useState(false);
   const [plannerDestination, setPlannerDestination] = useState<string | undefined>(undefined);
   const [activeView, setActiveView] = useState<'explore' | 'my-trips'>('explore');
+
+  // Modal for Viewing a Curated Plan's Details
+  const [selectedViewingPlan, setSelectedViewingPlan] = useState<TripPlan | null>(null);
+  const [savedSuccessMsg, setSavedSuccessMsg] = useState<string | null>(null);
 
   // Filter approved services
   const approvedServices = (services || []).filter(s => s && s.status === 'approved');
@@ -45,6 +50,20 @@ export default function TravelerPortal() {
   const openPlannerFor = (destName: string) => {
     setPlannerDestination(destName);
     setIsPlannerOpen(true);
+  };
+
+  // Copy/Save plan to personal trips
+  const handleSaveToMyTrips = (plan: TripPlan) => {
+    const copiedPlan: TripPlan = {
+      ...plan,
+      id: `my_plan_${Date.now()}`,
+      travelerId: 'traveler1',
+      name: `My ${plan.name}`,
+      status: 'planned'
+    };
+    addPlan(copiedPlan);
+    setSavedSuccessMsg(`"${plan.name}" added to your saved trips!`);
+    setTimeout(() => setSavedSuccessMsg(null), 3000);
   };
 
   // Calculate totals
@@ -93,6 +112,21 @@ export default function TravelerPortal() {
           <Sparkles className="w-4 h-4" /> Generate Plan with AI
         </button>
       </div>
+
+      {savedSuccessMsg && (
+        <div className="p-4 bg-emerald-100 border border-emerald-300 text-emerald-800 text-xs font-bold rounded-2xl flex items-center justify-between shadow-sm animate-in fade-in slide-in-from-top-2">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+            <span>{savedSuccessMsg}</span>
+          </div>
+          <button
+            onClick={() => setActiveView('my-trips')}
+            className="underline hover:text-emerald-950 font-bold"
+          >
+            View in My Trips →
+          </button>
+        </div>
+      )}
 
       {/* VIEW 1: EXPLORE DESTINATIONS & SERVICES */}
       {activeView === 'explore' && (
@@ -170,8 +204,106 @@ export default function TravelerPortal() {
             </div>
           )}
 
-          {/* Destinations Carousel / Grid */}
-          <div className="space-y-4">
+          {/* SHOWCASE SECTION: CURATED & ADMIN UPLOADED TRIP PLANS */}
+          <div className="space-y-4 pt-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-3">
+              <div>
+                <div className="flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-blue-600" />
+                  <h2 className="text-2xl font-bold text-slate-800">Featured Curated Itineraries</h2>
+                </div>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Complete day-by-day travel plans with schedules, booking links, and estimated costs uploaded by experts
+                </p>
+              </div>
+
+              <span className="text-xs font-bold text-blue-700 bg-blue-50 px-3 py-1 rounded-full border border-blue-200 self-start sm:self-auto">
+                {(plans || []).length} Plans Available
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {(plans || []).map(plan => (
+                <div
+                  key={plan.id}
+                  className="bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm hover:shadow-md transition flex flex-col group justify-between"
+                >
+                  <div>
+                    <div className="h-44 relative bg-slate-900 overflow-hidden">
+                      <img
+                        src={plan.coverImage || 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=800&q=80'}
+                        alt={plan.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition duration-500 opacity-90"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent" />
+                      
+                      <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5">
+                        <span className="bg-blue-600 text-white text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow">
+                          {plan.destination}
+                        </span>
+                        {plan.sourceFileType && (
+                          <span className="bg-amber-400 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded uppercase shadow">
+                            {plan.sourceFileType} Plan
+                          </span>
+                        )}
+                      </div>
+
+                      <span className="absolute bottom-2.5 right-2.5 bg-black/60 backdrop-blur text-white text-xs font-bold px-2.5 py-0.5 rounded">
+                        {plan.itinerary.length} Days
+                      </span>
+                    </div>
+
+                    <div className="p-5 space-y-2.5">
+                      <h3 className="font-bold text-slate-900 text-base leading-snug line-clamp-1 group-hover:text-blue-600 transition">
+                        {plan.name}
+                      </h3>
+                      
+                      <div className="flex items-center gap-3 text-xs text-slate-500">
+                        <span className="flex items-center gap-1">
+                          <Calendar className="w-3.5 h-3.5 text-slate-400" /> {plan.itinerary.length} Days
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Users className="w-3.5 h-3.5 text-slate-400" /> {plan.travelersCount} Travelers
+                        </span>
+                      </div>
+
+                      <p className="text-xs text-slate-600 line-clamp-2">
+                        {plan.notes || `Structured route featuring top spots, verified hotels, and restaurants in ${plan.destination}.`}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="p-5 pt-0 border-t border-slate-100 flex items-center justify-between gap-2 mt-2">
+                    <div>
+                      <span className="text-[10px] text-slate-400 uppercase font-bold block">Est. Budget</span>
+                      <span className="text-sm font-extrabold text-slate-800">
+                        ₹{plan.totalExpenses.toLocaleString()}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        onClick={() => setSelectedViewingPlan(plan)}
+                        className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-xs rounded-xl transition"
+                      >
+                        View Route
+                      </button>
+                      <button
+                        onClick={() => handleSaveToMyTrips(plan)}
+                        className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition"
+                        title="Copy to My Trips"
+                      >
+                        <BookmarkPlus className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Destinations Grid */}
+          <div className="space-y-4 pt-6">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <div>
                 <h2 className="text-2xl font-bold text-slate-800">Featured Destinations</h2>
@@ -492,6 +624,11 @@ export default function TravelerPortal() {
                                   </span>
                                 </div>
                                 <p className="text-[11px] text-slate-500 line-clamp-1">{item.description}</p>
+                                {item.bookingUrl && (
+                                  <a href={item.bookingUrl} target="_blank" rel="noreferrer" className="text-[10px] text-blue-600 hover:underline flex items-center gap-1 mt-1 font-semibold">
+                                    <ExternalLink className="w-2.5 h-2.5" /> Booking Link
+                                  </a>
+                                )}
                               </div>
 
                               <div className="flex items-center gap-3 shrink-0">
@@ -527,6 +664,106 @@ export default function TravelerPortal() {
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* PLAN DETAIL MODAL (EXPLORE FULL ROUTE) */}
+      {selectedViewingPlan && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm overflow-y-auto">
+          <div className="bg-white rounded-3xl max-w-2xl w-full shadow-2xl border border-slate-100 overflow-hidden my-8 animate-in fade-in zoom-in-95 duration-200">
+            {/* Modal Header */}
+            <div className="relative h-48 bg-slate-900">
+              <img
+                src={selectedViewingPlan.coverImage || 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=1200&q=80'}
+                alt={selectedViewingPlan.name}
+                className="w-full h-full object-cover opacity-80"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent" />
+              
+              <button
+                onClick={() => setSelectedViewingPlan(null)}
+                className="absolute top-4 right-4 p-2 bg-black/50 hover:bg-black/80 rounded-full text-white transition"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <div className="absolute bottom-4 left-6 right-6 text-white">
+                <span className="text-[10px] font-extrabold bg-blue-600 px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                  {selectedViewingPlan.destination}
+                </span>
+                <h3 className="text-xl font-bold mt-1 leading-snug">{selectedViewingPlan.name}</h3>
+                <p className="text-xs text-slate-300">
+                  {selectedViewingPlan.itinerary.length} Days • {selectedViewingPlan.travelersCount} Travelers • Total Budget: ₹{selectedViewingPlan.totalExpenses.toLocaleString()}
+                </p>
+              </div>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-6 space-y-6 max-h-[60vh] overflow-y-auto">
+              {selectedViewingPlan.itinerary.map(day => (
+                <div key={day.id} className="space-y-3">
+                  <div className="flex items-center justify-between border-b border-slate-200 pb-1.5">
+                    <h4 className="text-xs font-bold text-blue-700 uppercase tracking-wider">
+                      Day {day.dayNumber}: {day.title}
+                    </h4>
+                  </div>
+
+                  <div className="space-y-2.5">
+                    {day.items.map(item => (
+                      <div key={item.id} className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-start justify-between gap-3 text-xs">
+                        <div className="space-y-1 flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="font-extrabold text-[10px] text-blue-600 bg-blue-100 px-1.5 py-0.5 rounded">
+                              {item.time}
+                            </span>
+                            <span className="font-bold text-slate-800">{item.location}</span>
+                            <span className="text-[10px] font-semibold text-slate-500 bg-white border border-slate-200 px-1.5 py-0.2 rounded capitalize">
+                              {item.type}
+                            </span>
+                          </div>
+                          <p className="text-slate-600">{item.description}</p>
+                          {item.bookingUrl && (
+                            <a
+                              href={item.bookingUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-blue-600 hover:underline font-bold text-[11px] inline-flex items-center gap-1 mt-1"
+                            >
+                              <ExternalLink className="w-3 h-3" /> Booking / Map Information
+                            </a>
+                          )}
+                        </div>
+
+                        <span className="font-extrabold text-slate-800 shrink-0 text-sm">
+                          ₹{item.cost}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
+              <div>
+                <span className="text-xs text-slate-500">Estimated Total:</span>
+                <span className="text-base font-extrabold text-slate-900 ml-1.5">
+                  ₹{selectedViewingPlan.totalExpenses.toLocaleString()}
+                </span>
+              </div>
+
+              <button
+                onClick={() => {
+                  handleSaveToMyTrips(selectedViewingPlan);
+                  setSelectedViewingPlan(null);
+                }}
+                className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs rounded-xl shadow-lg shadow-blue-500/25 flex items-center gap-1.5 transition"
+              >
+                <BookmarkPlus className="w-4 h-4" /> Save to My Trips & Track
+              </button>
             </div>
           </div>
         </div>

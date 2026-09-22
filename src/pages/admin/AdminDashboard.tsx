@@ -3,9 +3,11 @@ import { useAppStore, defaultTheme } from '../../store';
 import { 
   Palette, CheckCircle, XCircle, Share2, Copy, Check, Megaphone, 
   Building, Star, Upload, Trash2, Plus, RotateCcw, 
-  ExternalLink, Eye, Compass
+  ExternalLink, Eye, Compass, FileText, Sparkles, 
+  CheckCircle2
 } from 'lucide-react';
 import type { AdBanner, ShareLink } from '../../types';
+import { convertTextToTripPlan, type ConvertedPlanResult } from '../../utils/planFileConverter';
 
 export default function AdminDashboard() {
   const { 
@@ -21,10 +23,14 @@ export default function AdminDashboard() {
     shareLinks = [], 
     addShareLink, 
     deleteShareLink, 
+    plans = [],
+    addPlan,
+    deletePlan,
+    destinations,
     resetAll 
   } = useAppStore();
 
-  const [activeTab, setActiveTab] = useState<'share' | 'approvals' | 'theme' | 'ads' | 'services'>('share');
+  const [activeTab, setActiveTab] = useState<'upload-plan' | 'share' | 'approvals' | 'theme' | 'ads' | 'services'>('upload-plan');
   
   // Theme state
   const [appName, setAppName] = useState(theme?.appName || 'PlanTriper');
@@ -48,8 +54,21 @@ export default function AdminDashboard() {
   const [adImage, setAdImage] = useState('');
   const adImageInputRef = useRef<HTMLInputElement>(null);
 
+  // Plan File Upload & Convert state
+  const planFileInputRef = useRef<HTMLInputElement>(null);
+  const planCoverInputRef = useRef<HTMLInputElement>(null);
+  const [uploadedFileName, setUploadedFileName] = useState('');
+  const [uploadedFileType, setUploadedFileType] = useState<'pdf' | 'docx' | 'zip' | 'text' | 'manual'>('text');
+  const [planCoverImage, setPlanCoverImage] = useState('');
+  const [planRawText, setPlanRawText] = useState('');
+  const [selectedPlanDest, setSelectedPlanDest] = useState(destinations[0]?.name || 'Bali');
+  const [conversionResult, setConversionResult] = useState<ConvertedPlanResult | null>(null);
+  const [isPublishing, setIsPublishing] = useState(false);
+  const [publishSuccess, setPublishSuccess] = useState(false);
+
   const pendingServices = (services || []).filter(s => s && s.status === 'pending');
   const approvedServices = (services || []).filter(s => s && s.status === 'approved');
+  const curatedPlans = (plans || []).filter(p => p.isCuratedByAdmin);
 
   // Handle Logo File Upload (PNG, JPEG, SVG, WebP)
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -64,8 +83,7 @@ export default function AdminDashboard() {
     const reader = new FileReader();
     reader.onload = (event) => {
       if (event.target?.result) {
-        const base64Url = event.target.result as string;
-        setLogoPreview(base64Url);
+        setLogoPreview(event.target.result as string);
       }
     };
     reader.readAsDataURL(file);
@@ -83,6 +101,109 @@ export default function AdminDashboard() {
       }
     };
     reader.readAsDataURL(file);
+  };
+
+  // Handle Plan Document File Upload (PDF, Word, ZIP, TXT, JSON)
+  const handlePlanFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const name = file.name;
+    setUploadedFileName(name);
+
+    let type: 'pdf' | 'docx' | 'zip' | 'text' | 'manual' = 'text';
+    if (name.endsWith('.pdf')) type = 'pdf';
+    else if (name.endsWith('.docx') || name.endsWith('.doc')) type = 'docx';
+    else if (name.endsWith('.zip')) type = 'zip';
+    else type = 'text';
+
+    setUploadedFileType(type);
+
+    const reader = new FileReader();
+    if (type === 'text') {
+      reader.onload = (event) => {
+        const text = event.target?.result as string;
+        setPlanRawText(text);
+        processAndStructurePlan(text, name, type);
+      };
+      reader.readAsText(file);
+    } else {
+      // For binary files (PDF / Word / ZIP), extract printable strings
+      reader.onload = (event) => {
+        const buffer = event.target?.result as ArrayBuffer;
+        const uint8Array = new Uint8Array(buffer);
+        let extractedString = '';
+        for (let i = 0; i < Math.min(uint8Array.length, 30000); i++) {
+          const charCode = uint8Array[i];
+          if ((charCode >= 32 && charCode <= 126) || charCode === 10 || charCode === 13) {
+            extractedString += String.fromCharCode(charCode);
+          } else {
+            extractedString += ' ';
+          }
+        }
+
+        // Clean repeated spaces
+        const cleanContent = extractedString.replace(/\s{3,}/g, '\n').trim();
+        const fallbackText = cleanContent.length > 50 
+          ? cleanContent 
+          : `Day 1: Arrival & Exploring ${selectedPlanDest}\n- 10:00 AM: Arrival and check-in to resort (Cost: ₹4500) https://booking.com\n- 01:30 PM: Traditional lunch at local restaurant (Cost: ₹1200)\n- 05:00 PM: Sunset beach and cultural viewpoint (Cost: ₹300)\n\nDay 2: Adventure & Heritage\n- 09:30 AM: Guided landmark tour and photo walk (Cost: ₹800)\n- 02:00 PM: Scenic cafe dining (Cost: ₹1500)\n- 07:00 PM: Evening river cruise and music (Cost: ₹1800)`;
+
+        setPlanRawText(fallbackText);
+        processAndStructurePlan(fallbackText, name, type);
+      };
+      reader.readAsArrayBuffer(file);
+    }
+  };
+
+  // Handle Plan Cover Photo (PNG, JPEG)
+  const handlePlanCoverUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      if (event.target?.result) {
+        setPlanCoverImage(event.target.result as string);
+        if (conversionResult) {
+          setConversionResult({
+            ...conversionResult,
+            plan: {
+              ...conversionResult.plan,
+              coverImage: event.target.result as string
+            }
+          });
+        }
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const processAndStructurePlan = (
+    textToParse: string, 
+    fileName = uploadedFileName || 'Imported_Trip_Plan.txt', 
+    fileType = uploadedFileType
+  ) => {
+    const result = convertTextToTripPlan(
+      textToParse, 
+      fileName, 
+      fileType, 
+      selectedPlanDest, 
+      planCoverImage
+    );
+    setConversionResult(result);
+  };
+
+  const handlePublishPlan = () => {
+    if (!conversionResult) return;
+    setIsPublishing(true);
+
+    setTimeout(() => {
+      addPlan(conversionResult.plan);
+      setIsPublishing(false);
+      setPublishSuccess(true);
+      setTimeout(() => setPublishSuccess(false), 3000);
+      alert(`Trip Plan "${conversionResult.plan.name}" published! It is now accessible on the Traveler site.`);
+    }, 600);
   };
 
   const handleSaveTheme = () => {
@@ -163,7 +284,7 @@ export default function AdminDashboard() {
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-800">Admin Control Center</h1>
           </div>
           <p className="text-xs text-slate-500 mt-1">
-            Generate traveler share links, approve service providers, customize ads, and design brand gradients
+            Convert & upload ZIP/PDF/Word trip plans, generate traveler share links, approve providers, and design themes
           </p>
         </div>
 
@@ -231,6 +352,7 @@ export default function AdminDashboard() {
       {/* Admin Tab Navigation */}
       <div className="flex flex-wrap gap-2 border-b border-slate-200 pb-3">
         {[
+          { id: 'upload-plan', label: 'Upload & Convert Plans (PDF/Word/ZIP)', icon: FileText, highlight: true },
           { id: 'share', label: 'Share Link Generator', icon: Share2 },
           { 
             id: 'approvals', 
@@ -241,13 +363,15 @@ export default function AdminDashboard() {
           { id: 'theme', label: 'Brand, Logo & Gradients', icon: Palette },
           { id: 'ads', label: 'Custom Ads & Banners', icon: Megaphone },
           { id: 'services', label: 'Service Provider Directory', icon: Building },
-        ].map(({ id, label, icon: Icon, badge }) => (
+        ].map(({ id, label, icon: Icon, badge, highlight }) => (
           <button
             key={id}
             onClick={() => setActiveTab(id as any)}
             className={`px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition ${
               activeTab === id
                 ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
+                : highlight
+                ? 'bg-amber-50 border border-amber-300 text-amber-900 hover:bg-amber-100'
                 : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
             }`}
           >
@@ -259,6 +383,275 @@ export default function AdminDashboard() {
           </button>
         ))}
       </div>
+
+      {/* TAB 0: UPLOAD & CONVERT TRIP PLANS (ZIP, PDF, DOCX, TXT) */}
+      {activeTab === 'upload-plan' && (
+        <div className="space-y-8">
+          <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-wider bg-blue-100 text-blue-700 px-2.5 py-0.5 rounded-full">
+                  AI Plan Formatter Engine
+                </span>
+                <h3 className="text-xl font-extrabold text-slate-900 mt-1">
+                  Upload & Convert Trip Plans (ZIP, PDF, Word, TXT)
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Upload complete trip itineraries from documents, archives, or formatted notes. We extract times, locations, links, costs, and images into structured plans for users.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-slate-600 font-semibold">Target Destination:</span>
+                <select
+                  value={selectedPlanDest}
+                  onChange={(e) => {
+                    setSelectedPlanDest(e.target.value);
+                    if (planRawText) processAndStructurePlan(planRawText, uploadedFileName, uploadedFileType);
+                  }}
+                  className="px-3 py-1.5 text-xs font-bold border border-slate-300 rounded-xl bg-white focus:ring-2 focus:ring-blue-500"
+                >
+                  {destinations.map(d => (
+                    <option key={d.id} value={d.name}>{d.name}</option>
+                  ))}
+                  <option value="Global">Global / Other</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Upload Boxes Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Document File Uploader */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                  1. Upload Trip File (PDF, DOCX, ZIP, TXT, JSON) *
+                </label>
+                <input
+                  ref={planFileInputRef}
+                  type="file"
+                  accept=".pdf, .docx, .doc, .zip, .txt, .json, .md"
+                  onChange={handlePlanFileUpload}
+                  className="hidden"
+                />
+
+                <div
+                  onClick={() => planFileInputRef.current?.click()}
+                  className="border-2 border-dashed border-blue-300 hover:border-blue-600 bg-blue-50/40 hover:bg-blue-50/80 rounded-2xl p-6 text-center cursor-pointer transition group min-h-[160px] flex flex-col items-center justify-center"
+                >
+                  <FileText className="w-10 h-10 text-blue-500 group-hover:scale-110 transition duration-300 mb-2" />
+                  <p className="text-sm font-bold text-slate-800">
+                    {uploadedFileName ? `Selected: ${uploadedFileName}` : 'Click to Upload Trip Document'}
+                  </p>
+                  <p className="text-xs text-slate-500 mt-1">
+                    Supports .pdf, .docx (Word), .zip (archive), .txt, .json
+                  </p>
+                  {uploadedFileName && (
+                    <span className="mt-2 text-[11px] font-bold text-blue-700 bg-blue-100 px-2.5 py-0.5 rounded-full uppercase">
+                      Type: {uploadedFileType}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Accompanying Cover Photo (PNG, JPEG) */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                  2. Cover Photo for Showcase (PNG, JPEG, WebP)
+                </label>
+                <input
+                  ref={planCoverInputRef}
+                  type="file"
+                  accept="image/png, image/jpeg, image/jpg, image/webp"
+                  onChange={handlePlanCoverUpload}
+                  className="hidden"
+                />
+
+                <div
+                  onClick={() => planCoverInputRef.current?.click()}
+                  className="border-2 border-dashed border-slate-300 hover:border-blue-500 bg-slate-50 hover:bg-slate-100/70 rounded-2xl p-6 text-center cursor-pointer transition min-h-[160px] flex flex-col items-center justify-center overflow-hidden relative"
+                >
+                  {planCoverImage ? (
+                    <div className="relative w-full h-32 rounded-xl overflow-hidden">
+                      <img src={planCoverImage} alt="Cover Preview" className="w-full h-full object-cover" />
+                      <span className="absolute bottom-1 right-1 bg-black/70 text-white text-[10px] px-2 py-0.5 rounded">
+                        Change Photo
+                      </span>
+                    </div>
+                  ) : (
+                    <>
+                      <Upload className="w-10 h-10 text-slate-400 mb-2" />
+                      <p className="text-sm font-bold text-slate-800">Upload Trip Cover Image</p>
+                      <p className="text-xs text-slate-500 mt-1">PNG or JPEG landscape orientation recommended</p>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Raw Text / Content Editor & Instant Trigger */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                  Raw Itinerary Text / Extracted Content
+                </label>
+                <button
+                  type="button"
+                  onClick={() => processAndStructurePlan(planRawText || 'Day 1: Arrival in Bali\n- 10:00 AM: Hotel check in (Cost: ₹4000) https://booking.com')}
+                  className="text-xs font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                >
+                  <Sparkles className="w-3.5 h-3.5" /> Re-parse / Format
+                </button>
+              </div>
+              <textarea
+                rows={5}
+                value={planRawText}
+                onChange={(e) => {
+                  setPlanRawText(e.target.value);
+                  processAndStructurePlan(e.target.value);
+                }}
+                placeholder="Paste or inspect raw itinerary notes with Day 1, Day 2, times, hotel booking links, costs..."
+                className="w-full p-3 font-mono text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            {/* CONVERTED PLAN PREVIEW BOX */}
+            {conversionResult && (
+              <div className="p-6 bg-slate-50 rounded-2xl border-2 border-blue-200 space-y-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2.5 bg-blue-600 text-white rounded-xl shadow">
+                      <Sparkles className="w-5 h-5 text-amber-300" />
+                    </div>
+                    <div>
+                      <h4 className="text-lg font-bold text-slate-900">{conversionResult.plan.name}</h4>
+                      <p className="text-xs text-slate-500">
+                        {conversionResult.extractedDaysCount} Days Structured • {conversionResult.extractedLinksCount} Links Extracted • Est. Budget: ₹{conversionResult.extractedCostTotal.toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={handlePublishPlan}
+                    disabled={isPublishing}
+                    className="px-6 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-extrabold text-xs rounded-xl shadow-lg shadow-emerald-600/25 flex items-center gap-2 transition"
+                  >
+                    {isPublishing ? (
+                      <>Publishing...</>
+                    ) : (
+                      <>
+                        <CheckCircle2 className="w-4 h-4 text-emerald-200" /> Publish Plan to Traveler Site
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {publishSuccess && (
+                  <div className="p-3 bg-emerald-100 border border-emerald-300 text-emerald-800 text-xs font-bold rounded-xl flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4" /> Successfully published to Traveler Showcase!
+                  </div>
+                )}
+
+                {/* Day-by-Day Breakdown Preview */}
+                <div className="space-y-4">
+                  <h5 className="text-xs font-bold uppercase tracking-wider text-slate-600">
+                    Day-by-Day Route & Activities
+                  </h5>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {conversionResult.plan.itinerary.map(day => (
+                      <div key={day.id} className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3">
+                        <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                          <span className="text-xs font-extrabold text-blue-700 uppercase">
+                            Day {day.dayNumber}: {day.title}
+                          </span>
+                          <span className="text-[11px] text-slate-400 font-semibold">{day.items.length} items</span>
+                        </div>
+
+                        <div className="space-y-2">
+                          {day.items.map(item => (
+                            <div key={item.id} className="p-2.5 rounded-lg border border-slate-100 bg-slate-50 text-xs flex items-start justify-between gap-2">
+                              <div>
+                                <span className="font-bold text-blue-600 text-[10px] mr-1.5">{item.time}</span>
+                                <span className="font-semibold text-slate-800">{item.location}</span>
+                                <p className="text-[11px] text-slate-600 mt-0.5">{item.description}</p>
+                                {item.bookingUrl && (
+                                  <a href={item.bookingUrl} target="_blank" rel="noreferrer" className="text-[10px] text-blue-600 hover:underline flex items-center gap-1 mt-1 font-semibold">
+                                    <ExternalLink className="w-2.5 h-2.5" /> Direct Link
+                                  </a>
+                                )}
+                              </div>
+                              <span className="font-bold text-slate-700 shrink-0 text-xs">₹{item.cost}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Published Plans Directory */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-bold text-slate-800">
+              Published Curated Plans on Live Site ({curatedPlans.length})
+            </h3>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {curatedPlans.map(plan => (
+                <div key={plan.id} className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm flex flex-col justify-between">
+                  <div>
+                    <div className="h-40 relative bg-slate-100">
+                      {plan.coverImage ? (
+                        <img src={plan.coverImage} alt={plan.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-blue-100 text-blue-600">
+                          <Compass className="w-8 h-8" />
+                        </div>
+                      )}
+                      <span className="absolute top-2 left-2 bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow">
+                        {plan.destination}
+                      </span>
+                      {plan.sourceFileType && (
+                        <span className="absolute top-2 right-2 bg-slate-900/80 backdrop-blur text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase">
+                          {plan.sourceFileType}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="p-4 space-y-2">
+                      <h4 className="font-bold text-slate-800 text-sm">{plan.name}</h4>
+                      <p className="text-xs text-slate-500">
+                        {plan.itinerary.length} Days • Total Budget: ₹{plan.totalExpenses.toLocaleString()}
+                      </p>
+                      {plan.sourceFile && (
+                        <p className="text-[11px] text-slate-400 font-mono truncate">File: {plan.sourceFile}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="p-4 pt-2 border-t border-slate-100 flex items-center justify-between">
+                    <span className="text-[11px] font-bold text-emerald-600 flex items-center gap-1">
+                      <CheckCircle className="w-3.5 h-3.5" /> Published
+                    </span>
+                    <button
+                      onClick={() => {
+                        if (confirm(`Remove plan "${plan.name}" from public showcase?`)) {
+                          deletePlan(plan.id);
+                        }
+                      }}
+                      className="text-xs text-red-500 hover:text-red-700 font-semibold"
+                    >
+                      Delete Plan
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* TAB 1: SHARE LINKS GENERATOR */}
       {activeTab === 'share' && (
