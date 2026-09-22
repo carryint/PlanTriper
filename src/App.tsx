@@ -1,12 +1,10 @@
 import { Component, type ErrorInfo, type ReactNode, useEffect, useRef } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAppStore } from './store';
-import { seedServices, seedPlans } from './data/seed';
+import { seedServices, seedPlans, seedAds, seedShareLinks } from './data/seed';
 import Layout from './components/Layout';
-import Login from './pages/Login';
 import AdminDashboard from './pages/admin/AdminDashboard';
-import TravelerDashboard from './pages/traveler/TravelerDashboard';
-import ProviderDashboard from './pages/provider/ProviderDashboard';
+import TravelerPortal from './pages/traveler/TravelerPortal';
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -50,7 +48,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
             </p>
             <button
               onClick={this.handleReset}
-              className="w-full bg-blue-600 text-white font-medium py-2 rounded-lg hover:bg-blue-700 transition"
+              className="w-full bg-blue-600 text-white font-medium py-2.5 rounded-xl hover:bg-blue-700 transition"
             >
               Reset Storage & Reload
             </button>
@@ -63,7 +61,17 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
 }
 
 function App() {
-  const { plans, addPlan, services, addService } = useAppStore();
+  const { 
+    plans, 
+    addPlan, 
+    services, 
+    addService, 
+    adBanners, 
+    addAdBanner, 
+    shareLinks, 
+    addShareLink 
+  } = useAppStore();
+  
   const initialized = useRef(false);
 
   // Bootstrap seed data once if store is empty
@@ -72,31 +80,35 @@ function App() {
     initialized.current = true;
 
     try {
-      seedPlans.forEach((plan) => {
-        if (!plans || !plans.some((p) => p && p.id === plan.id)) {
-          addPlan(plan);
-        }
-      });
-
-      seedServices.forEach((service) => {
-        if (!services || !services.some((s) => s && s.id === service.id)) {
-          addService(service);
-        }
-      });
+      if (!plans || plans.length === 0) {
+        seedPlans.forEach(plan => addPlan(plan));
+      }
+      if (!services || services.length === 0) {
+        seedServices.forEach(service => addService(service));
+      }
+      if (!adBanners || adBanners.length === 0) {
+        seedAds.forEach(ad => addAdBanner(ad));
+      }
+      if (!shareLinks || shareLinks.length === 0) {
+        seedShareLinks.forEach(link => addShareLink(link));
+      }
     } catch (e) {
-      console.error('Error seeding data:', e);
+      console.error('Error bootstrapping store:', e);
     }
-  }, [plans, services, addPlan, addService]);
+  }, [plans, services, adBanners, shareLinks, addPlan, addService, addAdBanner, addShareLink]);
 
   return (
     <ErrorBoundary>
       <HashRouter>
         <Routes>
           <Route path="/" element={<Layout />}>
-            <Route index element={<Login />} />
-            <Route path="admin/*" element={<AdminDashboard />} />
-            <Route path="traveler/*" element={<TravelerDashboard />} />
-            <Route path="provider/*" element={<ProviderDashboard />} />
+            {/* Direct link gives Admin Dashboard access only */}
+            <Route index element={<AdminDashboard />} />
+            <Route path="admin" element={<AdminDashboard />} />
+            
+            {/* Major Traveler Dashboard accessed via share link */}
+            <Route path="traveler" element={<TravelerPortal />} />
+            
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         </Routes>
