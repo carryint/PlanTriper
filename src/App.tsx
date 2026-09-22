@@ -22,7 +22,7 @@ function App() {
   }, [plans.length, services.length, addPlan, addService]);
 
   return (
-    <BrowserRouter basename="/Cartoon-Maker">
+    <BrowserRouter basename="/PlanTriper">
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<Login />} />
