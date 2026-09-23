@@ -12,6 +12,7 @@ import { convertTextToTripPlan, type ConvertedPlanResult } from '../../utils/pla
 import { ManualTripPlannerModal } from '../../components/planner/ManualTripPlannerModal';
 import { 
   getAllCountries, 
+  getPopularCountries,
   getCitiesByCountry, 
   getPlacesByCity, 
   findLocationByPostalCode, 
@@ -77,6 +78,7 @@ export default function AdminDashboard() {
 
   // Cascading Geography Hierarchy
   const availableCountries = useMemo(() => getAllCountries(), []);
+  const popularCountries = useMemo(() => getPopularCountries(), []);
 
   const availableCities = useMemo(() => {
     if (country === 'other') return [];
@@ -665,9 +667,16 @@ export default function AdminDashboard() {
                       onChange={(e) => handleCountryChange(e.target.value)}
                       className="w-full px-3 py-2 text-xs font-bold border border-slate-300 rounded-xl bg-white focus:ring-2 focus:ring-blue-500 shadow-sm"
                     >
-                      {availableCountries.map(c => (
-                        <option key={c} value={c}>{c}</option>
-                      ))}
+                      <optgroup label="🌟 Featured & Popular Destinations">
+                        {popularCountries.map(c => (
+                          <option key={`pop-${c}`} value={c}>{c}</option>
+                        ))}
+                      </optgroup>
+                      <optgroup label="🌍 All Countries Worldwide (A–Z) — 200+ Countries">
+                        {availableCountries.map(c => (
+                          <option key={`all-${c}`} value={c}>{c}</option>
+                        ))}
+                      </optgroup>
                       <option value="other">+ Enter Other Country</option>
                     </select>
                     {country === 'other' && (
