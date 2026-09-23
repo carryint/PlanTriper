@@ -208,7 +208,7 @@ export const useAppStore = create<AppState>()(
       }
     }),
     {
-      name: 'plantriper-storage-v8',
+      name: 'plantriper-storage-v9',
             merge: (persistedState: any, currentState) => {
         const persistedServices: Service[] = persistedState?.services || [];
         const persistedIds = new Set(persistedServices.map(s => s.id));
