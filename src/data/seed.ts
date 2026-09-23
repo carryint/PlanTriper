@@ -184,7 +184,7 @@ export const seedServices: Service[] = [
     "pricePerDay": 0,
     "description": "Quiet northernmost beach with pine trees and river inlet",
     "images": [
-      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80"
+      "./images/goa/beaches/beach_1.jpg"
     ],
     "featured": true,
     "createdAt": "2026-09-23"
@@ -211,7 +211,7 @@ export const seedServices: Service[] = [
     "pricePerDay": 0,
     "description": "Bohemian hub with drum circles and sweetwater lake",
     "images": [
-      "https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?auto=format&fit=crop&w=800&q=80"
+      "./images/goa/beaches/beach_2.jpg"
     ],
     "featured": true,
     "createdAt": "2026-09-23"
@@ -238,7 +238,7 @@ export const seedServices: Service[] = [
     "pricePerDay": 0,
     "description": "Tranquil white-sand stretch with bamboo bridge crossings",
     "images": [
-      "https://images.unsplash.com/photo-1509233725247-49e657c54213?auto=format&fit=crop&w=800&q=80"
+      "./images/goa/beaches/beach_3.jpg"
     ],
     "featured": true,
     "createdAt": "2026-09-23"
@@ -265,7 +265,7 @@ export const seedServices: Service[] = [
     "pricePerDay": 0,
     "description": "Boutique resorts, chic seaside cafes, and calm surf",
     "images": [
-      "https://images.unsplash.com/photo-1519046904884-53103b34b206?auto=format&fit=crop&w=800&q=80"
+      "./images/goa/beaches/beach_4.jpg"
     ],
     "featured": true,
     "createdAt": "2026-09-23"
@@ -292,7 +292,7 @@ export const seedServices: Service[] = [
     "pricePerDay": 0,
     "description": "Olive Ridley sea turtle nesting beach and kite surfing spot",
     "images": [
-      "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=800&q=80"
+      "./images/goa/beaches/beach_5.jpg"
     ],
     "featured": true,
     "createdAt": "2026-09-23"
@@ -319,7 +319,7 @@ export const seedServices: Service[] = [
     "pricePerDay": 0,
     "description": "Dramatic red cliffs, Chapora Fort view, and carved Shiva rock",
     "images": [
-      "https://images.unsplash.com/photo-1506929562872-bb421503ef21?auto=format&fit=crop&w=800&q=80"
+      "./images/goa/beaches/beach_6.jpg"
     ],
     "featured": true,
     "createdAt": "2026-09-23"
@@ -346,7 +346,7 @@ export const seedServices: Service[] = [
     "pricePerDay": 0,
     "description": "Rocky coastline, iconic flea markets, and heritage shacks",
     "images": [
-      "https://images.unsplash.com/photo-1515238152791-8216bfdf89a7?auto=format&fit=crop&w=800&q=80"
+      "./images/goa/beaches/beach_7.jpg"
     ],
     "featured": true,
     "createdAt": "2026-09-23"
@@ -373,7 +373,7 @@ export const seedServices: Service[] = [
     "pricePerDay": 0,
     "description": "Hub for nightlife, high-energy beach clubs, and water sports",
     "images": [
-      "https://images.unsplash.com/photo-1473186578172-c141e6798cf4?auto=format&fit=crop&w=800&q=80"
+      "./images/goa/beaches/beach_8.jpg"
     ],
     "featured": true,
     "createdAt": "2026-09-23"
@@ -400,7 +400,7 @@ export const seedServices: Service[] = [
     "pricePerDay": 0,
     "description": "Goa's busiest commercial beach with markets and water activities",
     "images": [
-      "https://images.unsplash.com/photo-1510414842594-a61c69b5ae57?auto=format&fit=crop&w=800&q=80"
+      "./images/goa/beaches/beach_9.jpg"
     ],
     "featured": false,
     "createdAt": "2026-09-23"
@@ -427,7 +427,7 @@ export const seedServices: Service[] = [
     "pricePerDay": 0,
     "description": "Long sandy stretch with premium resorts and water sports",
     "images": [
-      "https://images.unsplash.com/photo-1520483601560-389dff534fdf?auto=format&fit=crop&w=800&q=80"
+      "./images/goa/beaches/beach_10.jpg"
     ],
     "featured": false,
     "createdAt": "2026-09-23"
@@ -454,7 +454,7 @@ export const seedServices: Service[] = [
     "pricePerDay": 0,
     "description": "Historic beach located at the base of Fort Aguada",
     "images": [
-      "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80"
+      "./images/goa/beaches/beach_11.jpg"
     ],
     "featured": false,
     "createdAt": "2026-09-23"
@@ -481,7 +481,7 @@ export const seedServices: Service[] = [
     "pricePerDay": 0,
     "description": "Panaji city beach where Mandovi River meets the Arabian Sea",
     "images": [
-      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80"
+      "./images/goa/beaches/beach_12.jpg"
     ],
     "featured": false,
     "createdAt": "2026-09-23"
@@ -508,7 +508,7 @@ export const seedServices: Service[] = [
     "pricePerDay": 0,
     "description": "Scenic rocky headland with views of Mormugao Harbor",
     "images": [
-      "https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=800&q=80"
+      "./images/goa/beaches/beach_13.jpg"
     ],
     "featured": false,
     "createdAt": "2026-09-23"
@@ -535,7 +535,7 @@ export const seedServices: Service[] = [
     "pricePerDay": 0,
     "description": "Crescent bay near Dabolim airport, popular for scuba diving",
     "images": [
-      "https://images.unsplash.com/photo-1468413253725-0d5181091126?auto=format&fit=crop&w=800&q=80"
+      "./images/goa/beaches/beach_14.jpg"
     ],
     "featured": false,
     "createdAt": "2026-09-23"
@@ -562,7 +562,7 @@ export const seedServices: Service[] = [
     "pricePerDay": 0,
     "description": "Spacious white sands lined with palm groves and seafood shacks",
     "images": [
-      "https://images.unsplash.com/photo-1471922694855-fa59acdb360d?auto=format&fit=crop&w=800&q=80"
+      "./images/goa/beaches/beach_15.jpg"
     ],
     "featured": false,
     "createdAt": "2026-09-23"
@@ -589,7 +589,7 @@ export const seedServices: Service[] = [
     "pricePerDay": 0,
     "description": "Wide, calm coastline known for local bakeries and peaceful walks",
     "images": [
-      "https://images.unsplash.com/photo-1519046904884-53103b34b206?auto=format&fit=crop&w=800&q=80"
+      "./images/goa/beaches/beach_16.jpg"
     ],
     "featured": false,
     "createdAt": "2026-09-23"
@@ -616,7 +616,7 @@ export const seedServices: Service[] = [
     "pricePerDay": 0,
     "description": "Scenic sunset beach known for dolphin spotting",
     "images": [
-      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80"
+      "./images/goa/beaches/beach_17.jpg"
     ],
     "featured": false,
     "createdAt": "2026-09-23"
@@ -643,7 +643,7 @@ export const seedServices: Service[] = [
     "pricePerDay": 0,
     "description": "Lively central South Goa hub with shacks and water sports",
     "images": [
-      "https://images.unsplash.com/photo-1506929562872-bb421503ef21?auto=format&fit=crop&w=800&q=80"
+      "./images/goa/beaches/beach_18.jpg"
     ],
     "featured": false,
     "createdAt": "2026-09-23"
@@ -670,7 +670,7 @@ export const seedServices: Service[] = [
     "pricePerDay": 0,
     "description": "Laid-back, family-friendly coastal stretch and fishing heritage",
     "images": [
-      "https://images.unsplash.com/photo-1515238152791-8216bfdf89a7?auto=format&fit=crop&w=800&q=80"
+      "./images/goa/beaches/beach_19.jpg"
     ],
     "featured": false,
     "createdAt": "2026-09-23"
@@ -697,7 +697,7 @@ export const seedServices: Service[] = [
     "pricePerDay": 0,
     "description": "Pristine white-sand coast home to luxury five-star resorts",
     "images": [
-      "https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?auto=format&fit=crop&w=800&q=80"
+      "./images/goa/beaches/beach_20.jpg"
     ],
     "featured": false,
     "createdAt": "2026-09-23"
@@ -724,7 +724,7 @@ export const seedServices: Service[] = [
     "pricePerDay": 0,
     "description": "Distinctive black lava rocks alongside Sal River mouth",
     "images": [
-      "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=800&q=80"
+      "./images/goa/beaches/beach_21.jpg"
     ],
     "featured": false,
     "createdAt": "2026-09-23"
@@ -751,7 +751,7 @@ export const seedServices: Service[] = [
     "pricePerDay": 0,
     "description": "Peninsula beach popular for jet skiing and windsurfing",
     "images": [
-      "https://images.unsplash.com/photo-1473186578172-c141e6798cf4?auto=format&fit=crop&w=800&q=80"
+      "./images/goa/beaches/beach_22.jpg"
     ],
     "featured": false,
     "createdAt": "2026-09-23"
@@ -778,7 +778,7 @@ export const seedServices: Service[] = [
     "pricePerDay": 0,
     "description": "Secluded wild cove beneath historic fortress ruins",
     "images": [
-      "https://images.unsplash.com/photo-1509233725247-49e657c54213?auto=format&fit=crop&w=800&q=80"
+      "./images/goa/beaches/beach_23.jpg"
     ],
     "featured": false,
     "createdAt": "2026-09-23"
@@ -805,7 +805,7 @@ export const seedServices: Service[] = [
     "pricePerDay": 0,
     "description": "Hidden bay famous for its emerald freshwater lagoon",
     "images": [
-      "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80"
+      "./images/goa/beaches/beach_24.jpg"
     ],
     "featured": false,
     "createdAt": "2026-09-23"
@@ -832,7 +832,7 @@ export const seedServices: Service[] = [
     "pricePerDay": 0,
     "description": "Unspoiled 3 km shore for turtle nesting and wellness retreats",
     "images": [
-      "https://images.unsplash.com/photo-1519046904884-53103b34b206?auto=format&fit=crop&w=800&q=80"
+      "./images/goa/beaches/beach_25.jpg"
     ],
     "featured": false,
     "createdAt": "2026-09-23"
@@ -859,7 +859,7 @@ export const seedServices: Service[] = [
     "pricePerDay": 0,
     "description": "Secret semi-circular cove accessible mainly by boat",
     "images": [
-      "https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=800&q=80"
+      "./images/goa/beaches/beach_26.jpg"
     ],
     "featured": false,
     "createdAt": "2026-09-23"
@@ -886,7 +886,7 @@ export const seedServices: Service[] = [
     "pricePerDay": 0,
     "description": "Iconic crescent bay lined with colorful shacks and calm waters",
     "images": [
-      "https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?auto=format&fit=crop&w=800&q=80"
+      "./images/goa/beaches/beach_27.jpg"
     ],
     "featured": false,
     "createdAt": "2026-09-23"
@@ -913,7 +913,7 @@ export const seedServices: Service[] = [
     "pricePerDay": 0,
     "description": "Quiet, relaxed neighbor of Palolem with seaside yoga and dining",
     "images": [
-      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80"
+      "./images/goa/beaches/beach_28.jpg"
     ],
     "featured": false,
     "createdAt": "2026-09-23"
@@ -940,7 +940,7 @@ export const seedServices: Service[] = [
     "pricePerDay": 0,
     "description": "Protected turtle nesting sanctuary surrounded by pine groves",
     "images": [
-      "https://images.unsplash.com/photo-1468413253725-0d5181091126?auto=format&fit=crop&w=800&q=80"
+      "./images/goa/beaches/beach_29.jpg"
     ],
     "featured": false,
     "createdAt": "2026-09-23"
@@ -967,7 +967,7 @@ export const seedServices: Service[] = [
     "pricePerDay": 0,
     "description": "Church: UNESCO World Heritage site housing the mortal remains of St. Francis Xavier.",
     "images": [
-      "https://images.unsplash.com/photo-1548625361-195fe61a55c3?auto=format&fit=crop&w=800&q=80"
+      "./images/goa/heritage/religious_1.jpg"
     ],
     "featured": true,
     "createdAt": "2026-09-23"
@@ -994,7 +994,7 @@ export const seedServices: Service[] = [
     "pricePerDay": 0,
     "description": "Church: One of the largest churches in Asia, famed for its monumental Golden Bell.",
     "images": [
-      "https://images.unsplash.com/photo-1569949381669-ecf31ae8e613?auto=format&fit=crop&w=800&q=80"
+      "./images/goa/heritage/religious_2.jpg"
     ],
     "featured": true,
     "createdAt": "2026-09-23"
@@ -1021,7 +1021,7 @@ export const seedServices: Service[] = [
     "pricePerDay": 0,
     "description": "Church: Iconic zigzagging multi-tiered staircase overlooking the center of Panaji.",
     "images": [
-      "https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?auto=format&fit=crop&w=800&q=80"
+      "./images/goa/heritage/religious_3.jpg"
     ],
     "featured": true,
     "createdAt": "2026-09-23"
@@ -1048,7 +1048,7 @@ export const seedServices: Service[] = [
     "pricePerDay": 0,
     "description": "Church: Manueline and Tuscan architecture with intricate woodwork and murals.",
     "images": [
-      "https://images.unsplash.com/photo-1548625361-195fe61a55c3?auto=format&fit=crop&w=800&q=80"
+      "./images/goa/heritage/religious_4.jpg"
     ],
     "featured": true,
     "createdAt": "2026-09-23"
@@ -1075,7 +1075,7 @@ export const seedServices: Service[] = [
     "pricePerDay": 0,
     "description": "Church: Built by Italian Theatine friars, modeled on St. Peter's Basilica in Rome.",
     "images": [
-      "https://images.unsplash.com/photo-1569949381669-ecf31ae8e613?auto=format&fit=crop&w=800&q=80"
+      "./images/goa/heritage/religious_5.jpg"
     ],
     "featured": true,
     "createdAt": "2026-09-23"
@@ -1102,7 +1102,7 @@ export const seedServices: Service[] = [
     "pricePerDay": 0,
     "description": "Church: Rare neo-Gothic church in Goa known for its striking pointed spires and castle-like illumination.",
     "images": [
-      "https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&w=800&q=80"
+      "./images/goa/heritage/religious_6.jpg"
     ],
     "featured": false,
     "createdAt": "2026-09-23"
@@ -1129,7 +1129,7 @@ export const seedServices: Service[] = [
     "pricePerDay": 0,
     "description": "Church: Hilltop chapel offering panoramic vistas of the Mandovi River and church ruins.",
     "images": [
-      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80"
+      "./images/goa/heritage/religious_7.jpg"
     ],
     "featured": false,
     "createdAt": "2026-09-23"
@@ -1156,7 +1156,7 @@ export const seedServices: Service[] = [
     "pricePerDay": 0,
     "description": "Church: 17th-century Baroque church anchored on Margao's historic municipal square.",
     "images": [
-      "https://images.unsplash.com/photo-1548625361-195fe61a55c3?auto=format&fit=crop&w=800&q=80"
+      "./images/goa/heritage/religious_8.jpg"
     ],
     "featured": false,
     "createdAt": "2026-09-23"
@@ -1183,7 +1183,7 @@ export const seedServices: Service[] = [
     "pricePerDay": 0,
     "description": "Church: Perched atop Cuelim Hill, known for panoramic coastal views and legendary folklore.",
     "images": [
-      "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80"
+      "./images/goa/heritage/religious_9.jpg"
     ],
     "featured": false,
     "createdAt": "2026-09-23"
@@ -1210,7 +1210,7 @@ export const seedServices: Service[] = [
     "pricePerDay": 0,
     "description": "Church: Distinctive rococo architecture featuring two towers and a grand central dome.",
     "images": [
-      "https://images.unsplash.com/photo-1569949381669-ecf31ae8e613?auto=format&fit=crop&w=800&q=80"
+      "./images/goa/heritage/religious_10.jpg"
     ],
     "featured": false,
     "createdAt": "2026-09-23"
@@ -1237,7 +1237,7 @@ export const seedServices: Service[] = [
     "pricePerDay": 0,
     "description": "Temple: Dedicated to Lord Shiva; features an iconic seven-storey white Deepstambha (lamp tower).",
     "images": [
-      "https://images.unsplash.com/photo-1609766857041-ed402ea8069a?auto=format&fit=crop&w=800&q=80"
+      "./images/goa/heritage/religious_11.jpg"
     ],
     "featured": false,
     "createdAt": "2026-09-23"
@@ -1264,7 +1264,7 @@ export const seedServices: Service[] = [
     "pricePerDay": 0,
     "description": "Temple: One of Goa's largest complexes, combining Indo-Portuguese and traditional Hindu architecture.",
     "images": [
-      "https://images.unsplash.com/photo-1582510003544-4d00b7f74220?auto=format&fit=crop&w=800&q=80"
+      "./images/goa/heritage/religious_12.jpg"
     ],
     "featured": false,
     "createdAt": "2026-09-23"
@@ -1291,7 +1291,7 @@ export const seedServices: Service[] = [
     "pricePerDay": 0,
     "description": "Temple: 12th-century Kadamba-style basalt stone temple; Goa's oldest surviving religious structure.",
     "images": [
-      "https://images.unsplash.com/photo-1621847468516-1ed5d0df56fe?auto=format&fit=crop&w=800&q=80"
+      "./images/goa/heritage/religious_13.jpg"
     ],
     "featured": false,
     "createdAt": "2026-09-23"
@@ -1318,7 +1318,7 @@ export const seedServices: Service[] = [
     "pricePerDay": 0,
     "description": "Temple: Dedicated to the Mohini avatar of Lord Vishnu, famous for its 40-foot brass lamp tower.",
     "images": [
-      "https://images.unsplash.com/photo-1609766857041-ed402ea8069a?auto=format&fit=crop&w=800&q=80"
+      "./images/goa/heritage/religious_14.jpg"
     ],
     "featured": false,
     "createdAt": "2026-09-23"
@@ -1345,7 +1345,7 @@ export const seedServices: Service[] = [
     "pricePerDay": 0,
     "description": "Temple: Dedicated to Goddess Lakshmi, featuring 24 carved wooden panels depicting Bhagavata lore.",
     "images": [
-      "https://images.unsplash.com/photo-1582510003544-4d00b7f74220?auto=format&fit=crop&w=800&q=80"
+      "./images/goa/heritage/religious_15.jpg"
     ],
     "featured": false,
     "createdAt": "2026-09-23"
@@ -1372,7 +1372,7 @@ export const seedServices: Service[] = [
     "pricePerDay": 0,
     "description": "Temple: Patron deity of the ancient Kadamba kings, historically renovated by Chhatrapati Shivaji Maharaj.",
     "images": [
-      "https://images.unsplash.com/photo-1621847468516-1ed5d0df56fe?auto=format&fit=crop&w=800&q=80"
+      "./images/goa/heritage/religious_16.jpg"
     ],
     "featured": false,
     "createdAt": "2026-09-23"
@@ -1399,7 +1399,7 @@ export const seedServices: Service[] = [
     "pricePerDay": 0,
     "description": "Temple: 450-year-old sanctuary dedicated to Lord Shiva as installed by Lord Rama.",
     "images": [
-      "https://images.unsplash.com/photo-1609766857041-ed402ea8069a?auto=format&fit=crop&w=800&q=80"
+      "./images/goa/heritage/religious_17.jpg"
     ],
     "featured": false,
     "createdAt": "2026-09-23"
@@ -1426,7 +1426,7 @@ export const seedServices: Service[] = [
     "pricePerDay": 0,
     "description": "Temple: Ancient Shiva shrine known for wood carvings depicting the Ramayana and a quiet sacred water tank.",
     "images": [
-      "https://images.unsplash.com/photo-1582510003544-4d00b7f74220?auto=format&fit=crop&w=800&q=80"
+      "./images/goa/heritage/religious_18.jpg"
     ],
     "featured": false,
     "createdAt": "2026-09-23"
@@ -1453,7 +1453,7 @@ export const seedServices: Service[] = [
     "pricePerDay": 0,
     "description": "Temple: Rare temple dedicated to Lord Brahma with an intricately sculpted 12th-century idol.",
     "images": [
-      "https://images.unsplash.com/photo-1621847468516-1ed5d0df56fe?auto=format&fit=crop&w=800&q=80"
+      "./images/goa/heritage/religious_19.jpg"
     ],
     "featured": false,
     "createdAt": "2026-09-23"
@@ -1480,7 +1480,7 @@ export const seedServices: Service[] = [
     "pricePerDay": 0,
     "description": "Temple: Set along the Kushawati River, celebrated for its vibrant Shigmo festival celebrations.",
     "images": [
-      "https://images.unsplash.com/photo-1609766857041-ed402ea8069a?auto=format&fit=crop&w=800&q=80"
+      "./images/goa/heritage/religious_20.jpg"
     ],
     "featured": false,
     "createdAt": "2026-09-23"
