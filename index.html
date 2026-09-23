@@ -5,7 +5,18 @@
     <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>PlanTriper - Trip Route & Travel Planner</title>
-    <script type="module" crossorigin src="./assets/index-BtCO5l7A.js"></script>
+    <script>
+      (function() {
+        var path = window.location.pathname;
+        if (!window.location.hash && path.includes('/plan/')) {
+          var planIndex = path.indexOf('/plan/');
+          var base = path.substring(0, planIndex);
+          var subPath = path.substring(planIndex);
+          window.location.replace(base + '/#' + subPath + window.location.search);
+        }
+      })();
+    </script>
+    <script type="module" crossorigin src="./assets/index-Bz05AvpI.js"></script>
     <link rel="stylesheet" crossorigin href="./assets/index-BQkzt4kN.css">
   </head>
   <body>
