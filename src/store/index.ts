@@ -195,7 +195,7 @@ export const useAppStore = create<AppState>()(
       })),
 
       resetAll: () => {
-        localStorage.removeItem('plantriper-storage-v4');
+        localStorage.removeItem('plantriper-storage-v5');
         set({
           currentUser: seedUsers[0],
           theme: defaultTheme,
@@ -208,8 +208,22 @@ export const useAppStore = create<AppState>()(
       }
     }),
     {
-      name: 'plantriper-storage-v4',
-      merge: (persistedState: any, currentState) => {
+      name: 'plantriper-storage-v5',
+            merge: (persistedState: any, currentState) => {
+        const persistedServices: Service[] = persistedState?.services || [];
+        const persistedIds = new Set(persistedServices.map(s => s.id));
+        const mergedServices = [
+          ...persistedServices,
+          ...seedServices.filter(s => !persistedIds.has(s.id))
+        ];
+
+        const persistedDests: Destination[] = persistedState?.destinations || [];
+        const persistedDestNames = new Set(persistedDests.map(d => d.name.toLowerCase()));
+        const mergedDestinations = [
+          ...persistedDests,
+          ...seedDestinations.filter(d => !persistedDestNames.has(d.name.toLowerCase()))
+        ];
+
         return {
           ...currentState,
           ...(persistedState || {}),
@@ -217,8 +231,8 @@ export const useAppStore = create<AppState>()(
             ...defaultTheme,
             ...(persistedState?.theme || {})
           },
-          destinations: persistedState?.destinations ?? seedDestinations,
-          services: persistedState?.services ?? seedServices,
+          destinations: mergedDestinations,
+          services: mergedServices,
           plans: persistedState?.plans ?? seedPlans,
           adBanners: persistedState?.adBanners ?? seedAds,
           shareLinks: persistedState?.shareLinks ?? seedShareLinks,

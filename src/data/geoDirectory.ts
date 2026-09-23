@@ -3728,7 +3728,9 @@ export const GEO_DATABASE: GeoCountry[] = [
       {
         "name": "Goa",
         "aliases": [
-          "Goa Beaches"
+          "Goa Beaches",
+          "North Goa",
+          "South Goa"
         ],
         "places": [
           {
@@ -3741,41 +3743,6 @@ export const GEO_DATABASE: GeoCountry[] = [
             ]
           },
           {
-            "name": "Calangute",
-            "postalCode": "403516",
-            "aliases": [
-              "Calangute Beach",
-              "Tito Lane"
-            ]
-          },
-          {
-            "name": "Baga",
-            "postalCode": "403516",
-            "aliases": [
-              "Baga Beach",
-              "Club Cubana",
-              "Nightlife"
-            ]
-          },
-          {
-            "name": "Anjuna",
-            "postalCode": "403509",
-            "aliases": [
-              "Flea Market",
-              "Curlies",
-              "Vagator Cliff"
-            ]
-          },
-          {
-            "name": "Candolim",
-            "postalCode": "403515",
-            "aliases": [
-              "Fort Aguada",
-              "Sinquerim Beach",
-              "Dolphin Trips"
-            ]
-          },
-          {
             "name": "Old Goa",
             "postalCode": "403402",
             "aliases": [
@@ -3784,12 +3751,293 @@ export const GEO_DATABASE: GeoCountry[] = [
             ]
           },
           {
-            "name": "Palolem",
+            "name": "Querim (Keri) Beach",
+            "postalCode": "403524",
+            "aliases": [
+              "Querim (Keri) Beach",
+              "Querim (Keri)",
+              "North Goa Querim (Keri) Beach",
+              "Querim (Keri) Beach Goa"
+            ]
+          },
+          {
+            "name": "Arambol Beach",
+            "postalCode": "403519",
+            "aliases": [
+              "Arambol Beach",
+              "Arambol",
+              "North Goa Arambol Beach",
+              "Arambol Beach Goa"
+            ]
+          },
+          {
+            "name": "Mandrem Beach",
+            "postalCode": "403527",
+            "aliases": [
+              "Mandrem Beach",
+              "Mandrem",
+              "North Goa Mandrem Beach",
+              "Mandrem Beach Goa"
+            ]
+          },
+          {
+            "name": "Ashwem Beach",
+            "postalCode": "403527",
+            "aliases": [
+              "Ashwem Beach",
+              "Ashwem",
+              "North Goa Ashwem Beach",
+              "Ashwem Beach Goa"
+            ]
+          },
+          {
+            "name": "Morjim Beach",
+            "postalCode": "403512",
+            "aliases": [
+              "Morjim Beach",
+              "Morjim",
+              "North Goa Morjim Beach",
+              "Morjim Beach Goa"
+            ]
+          },
+          {
+            "name": "Vagator Beach",
+            "postalCode": "403509",
+            "aliases": [
+              "Vagator Beach",
+              "Vagator",
+              "North Goa Vagator Beach",
+              "Vagator Beach Goa"
+            ]
+          },
+          {
+            "name": "Anjuna Beach",
+            "postalCode": "403509",
+            "aliases": [
+              "Anjuna Beach",
+              "Anjuna",
+              "North Goa Anjuna Beach",
+              "Anjuna Beach Goa"
+            ]
+          },
+          {
+            "name": "Baga Beach",
+            "postalCode": "403516",
+            "aliases": [
+              "Baga Beach",
+              "Baga",
+              "North Goa Baga Beach",
+              "Baga Beach Goa"
+            ]
+          },
+          {
+            "name": "Calangute Beach",
+            "postalCode": "403516",
+            "aliases": [
+              "Calangute Beach",
+              "Calangute",
+              "North Goa Calangute Beach",
+              "Calangute Beach Goa"
+            ]
+          },
+          {
+            "name": "Candolim Beach",
+            "postalCode": "403515",
+            "aliases": [
+              "Candolim Beach",
+              "Candolim",
+              "North Goa Candolim Beach",
+              "Candolim Beach Goa"
+            ]
+          },
+          {
+            "name": "Sinquerim Beach",
+            "postalCode": "403515",
+            "aliases": [
+              "Sinquerim Beach",
+              "Sinquerim",
+              "North Goa Sinquerim Beach",
+              "Sinquerim Beach Goa"
+            ]
+          },
+          {
+            "name": "Miramar Beach",
+            "postalCode": "403001",
+            "aliases": [
+              "Miramar Beach",
+              "Miramar",
+              "North Goa Miramar Beach",
+              "Miramar Beach Goa"
+            ]
+          },
+          {
+            "name": "Dona Paula",
+            "postalCode": "403004",
+            "aliases": [
+              "Dona Paula",
+              "Dona Paula",
+              "North Goa Dona Paula",
+              "Dona Paula Goa"
+            ]
+          },
+          {
+            "name": "Bogmalo Beach",
+            "postalCode": "403806",
+            "aliases": [
+              "Bogmalo Beach",
+              "Bogmalo",
+              "South Goa Bogmalo Beach",
+              "Bogmalo Beach Goa"
+            ]
+          },
+          {
+            "name": "Arossim Beach",
+            "postalCode": "403712",
+            "aliases": [
+              "Arossim Beach",
+              "Arossim",
+              "South Goa Arossim Beach",
+              "Arossim Beach Goa"
+            ]
+          },
+          {
+            "name": "Majorda Beach",
+            "postalCode": "403713",
+            "aliases": [
+              "Majorda Beach",
+              "Majorda",
+              "South Goa Majorda Beach",
+              "Majorda Beach Goa"
+            ]
+          },
+          {
+            "name": "Betalbatim Beach",
+            "postalCode": "403713",
+            "aliases": [
+              "Betalbatim Beach",
+              "Betalbatim",
+              "South Goa Betalbatim Beach",
+              "Betalbatim Beach Goa"
+            ]
+          },
+          {
+            "name": "Colva Beach",
+            "postalCode": "403708",
+            "aliases": [
+              "Colva Beach",
+              "Colva",
+              "South Goa Colva Beach",
+              "Colva Beach Goa"
+            ]
+          },
+          {
+            "name": "Benaulim Beach",
+            "postalCode": "403716",
+            "aliases": [
+              "Benaulim Beach",
+              "Benaulim",
+              "South Goa Benaulim Beach",
+              "Benaulim Beach Goa"
+            ]
+          },
+          {
+            "name": "Varca Beach",
+            "postalCode": "403721",
+            "aliases": [
+              "Varca Beach",
+              "Varca",
+              "South Goa Varca Beach",
+              "Varca Beach Goa"
+            ]
+          },
+          {
+            "name": "Cavelossim Beach",
+            "postalCode": "403731",
+            "aliases": [
+              "Cavelossim Beach",
+              "Cavelossim",
+              "South Goa Cavelossim Beach",
+              "Cavelossim Beach Goa"
+            ]
+          },
+          {
+            "name": "Mobor Beach",
+            "postalCode": "403731",
+            "aliases": [
+              "Mobor Beach",
+              "Mobor",
+              "South Goa Mobor Beach",
+              "Mobor Beach Goa"
+            ]
+          },
+          {
+            "name": "Cabo de Rama Beach",
+            "postalCode": "403703",
+            "aliases": [
+              "Cabo de Rama Beach",
+              "Cabo de Rama",
+              "South Goa Cabo de Rama Beach",
+              "Cabo de Rama Beach Goa"
+            ]
+          },
+          {
+            "name": "Cola Beach",
+            "postalCode": "403702",
+            "aliases": [
+              "Cola Beach",
+              "Cola",
+              "South Goa Cola Beach",
+              "Cola Beach Goa"
+            ]
+          },
+          {
+            "name": "Agonda Beach",
+            "postalCode": "403702",
+            "aliases": [
+              "Agonda Beach",
+              "Agonda",
+              "South Goa Agonda Beach",
+              "Agonda Beach Goa"
+            ]
+          },
+          {
+            "name": "Butterfly Beach",
+            "postalCode": "403702",
+            "aliases": [
+              "Butterfly Beach",
+              "Butterfly",
+              "South Goa Butterfly Beach",
+              "Butterfly Beach Goa"
+            ]
+          },
+          {
+            "name": "Palolem Beach",
             "postalCode": "403702",
             "aliases": [
               "Palolem Beach",
-              "Butterfly Beach",
-              "South Goa Shacks"
+              "Palolem",
+              "South Goa Palolem Beach",
+              "Palolem Beach Goa"
+            ]
+          },
+          {
+            "name": "Patnem Beach",
+            "postalCode": "403702",
+            "aliases": [
+              "Patnem Beach",
+              "Patnem",
+              "South Goa Patnem Beach",
+              "Patnem Beach Goa"
+            ]
+          },
+          {
+            "name": "Galgibaga Beach",
+            "postalCode": "403728",
+            "aliases": [
+              "Galgibaga Beach",
+              "Galgibaga",
+              "South Goa Galgibaga Beach",
+              "Galgibaga Beach Goa"
             ]
           }
         ]

@@ -327,11 +327,13 @@ export default function TravelerPortal() {
                   <span className="text-slate-300 text-[11px] font-medium mr-1">Popular searches:</span>
                   {[
                     'destinations and hotels in Kochi',
-                    'hotels in Kochi',
+                    'beaches in Goa',
+                    'Palolem beach',
+                    'Baga beach',
+                    'Querim beach',
                     'Cherai beach',
                     'bike rentals',
-                    'St. Francis Church',
-                    'Jew Town shop'
+                    'St. Francis Church'
                   ].map((chip) => (
                     <button
                       key={chip}
