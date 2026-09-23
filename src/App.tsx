@@ -5,6 +5,7 @@ import { seedServices, seedPlans, seedAds, seedShareLinks } from './data/seed';
 import Layout from './components/Layout';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import TravelerPortal from './pages/traveler/TravelerPortal';
+import SharedPlanView from './pages/traveler/SharedPlanView';
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -101,6 +102,9 @@ function App() {
     <ErrorBoundary>
       <HashRouter>
         <Routes>
+          {/* Public Shared Trip Plan View */}
+          <Route path="plan/:planId" element={<SharedPlanView />} />
+
           <Route path="/" element={<Layout />}>
             {/* Direct link gives Admin Dashboard access only */}
             <Route index element={<AdminDashboard />} />

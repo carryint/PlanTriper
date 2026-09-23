@@ -21,8 +21,8 @@ export default function Layout() {
     root.style.setProperty('--gradient-end', gradientEnd);
   }, [activeTheme, gradientStart, gradientEnd]);
 
-  const isTravelerView = location.pathname.startsWith('/traveler');
-  const isAdminView = !isTravelerView;
+  const isTravelerView = location.pathname.startsWith('/traveler') || location.pathname.startsWith('/plan');
+  const isAdminView = !isTravelerView && (location.pathname === '/' || location.pathname.startsWith('/admin'));
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 font-sans antialiased">

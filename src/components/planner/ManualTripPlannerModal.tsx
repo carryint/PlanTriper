@@ -3,10 +3,12 @@ import { useAppStore } from '../../store';
 import { 
   X, Plus, Trash2, MapPin, Building, Utensils, 
   Bike, Church, Waves, Compass, DollarSign, ExternalLink, CheckCircle2,
-  Sparkles, Navigation, Clock, Info, CheckSquare, Square, ArrowRight, Route
+  Sparkles, Navigation, Clock, Info, CheckSquare, Square, ArrowRight, Route,
+  Download
 } from 'lucide-react';
 import type { TripPlan, ItineraryDay, ItineraryItem, Service, ServiceType } from '../../types';
 import { arrangeDayPlan } from '../../utils/routeOptimizer';
+import { downloadPlanAsPdf, generateShareablePlanUrl, copyPlanShareLink } from '../../utils/pdfGenerator';
 
 interface ManualTripPlannerModalProps {
   isOpen: boolean;
@@ -44,6 +46,10 @@ export const ManualTripPlannerModal: React.FC<ManualTripPlannerModalProps> = ({
   // Optimization Status
   const [isArranging, setIsArranging] = useState(false);
   const [arrangeSuccessMsg, setArrangeSuccessMsg] = useState<string | null>(null);
+
+  // Post-Save Share & Download Modal state
+  const [savedShareModalPlan, setSavedShareModalPlan] = useState<TripPlan | null>(null);
+  const [copiedToast, setCopiedToast] = useState(false);
 
   // Days state
   const [days, setDays] = useState<ItineraryDay[]>([
@@ -257,12 +263,7 @@ export const ManualTripPlannerModal: React.FC<ManualTripPlannerModalProps> = ({
 
   const totalSelectedSpotsCount = days.reduce((total, d) => total + d.items.length, 0);
 
-  const handleSavePlan = () => {
-    if (!tripName.trim()) {
-      alert('Please enter a trip plan name.');
-      return;
-    }
-
+  const buildCurrentPlanObject = (): TripPlan => {
     const today = new Date();
     const startDate = today.toISOString().split('T')[0];
     const endDateObj = new Date(today);
@@ -271,10 +272,10 @@ export const ManualTripPlannerModal: React.FC<ManualTripPlannerModalProps> = ({
 
     const firstSpotImg = days[0]?.items[0]?.imageUrl || citySpots[0]?.images[0] || 'https://images.unsplash.com/photo-1593693397690-362cb9666fc2?auto=format&fit=crop&w=1200&q=80';
 
-    const newPlan: TripPlan = {
+    return {
       id: `plan_manual_${Date.now()}`,
       travelerId: 'traveler1',
-      name: tripName,
+      name: tripName || `${selectedCity} Custom Itinerary`,
       destination: selectedCity,
       country: citySpots[0]?.country || 'India',
       city: selectedCity,
@@ -291,10 +292,21 @@ export const ManualTripPlannerModal: React.FC<ManualTripPlannerModalProps> = ({
       isCuratedByAdmin: true,
       notes: `Custom itinerary created with verified spots in ${selectedCity}. Route analyzed & arranged.`
     };
+  };
 
+  const handleSavePlan = () => {
+    if (!tripName.trim()) {
+      alert('Please enter a trip plan name.');
+      return;
+    }
+    const newPlan = buildCurrentPlanObject();
     addPlan(newPlan);
-    alert(`Trip plan "${tripName}" created successfully and saved to your trips!`);
-    onClose();
+    setSavedShareModalPlan(newPlan);
+  };
+
+  const handleDownloadPreview = () => {
+    const currentPlan = buildCurrentPlanObject();
+    downloadPlanAsPdf(currentPlan);
   };
 
   const getCategoryIcon = (type: ServiceType) => {
@@ -751,7 +763,7 @@ export const ManualTripPlannerModal: React.FC<ManualTripPlannerModalProps> = ({
             </span>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
             <button
               type="button"
               onClick={onClose}
@@ -762,13 +774,119 @@ export const ManualTripPlannerModal: React.FC<ManualTripPlannerModalProps> = ({
 
             <button
               type="button"
+              onClick={handleDownloadPreview}
+              disabled={totalSelectedSpotsCount === 0}
+              className="px-4 py-2.5 bg-slate-900 hover:bg-slate-800 disabled:opacity-40 text-white font-bold text-xs rounded-xl shadow transition flex items-center gap-1.5"
+              title="Download formatted PDF or print"
+            >
+              <Download className="w-3.5 h-3.5 text-amber-300" />
+              <span>Download PDF</span>
+            </button>
+
+            <button
+              type="button"
               onClick={handleSavePlan}
-              className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-extrabold text-xs sm:text-sm rounded-xl shadow-lg shadow-blue-500/25 flex items-center gap-2 transition"
+              className="px-5 sm:px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-extrabold text-xs sm:text-sm rounded-xl shadow-lg shadow-blue-500/25 flex items-center gap-2 transition"
             >
               <CheckCircle2 className="w-4 h-4" /> Save &amp; Publish Trip Plan
             </button>
           </div>
         </div>
+
+        {/* POST-SAVE SHARE & DOWNLOAD DIALOG */}
+        {savedShareModalPlan && (
+          <div className="fixed inset-0 z-70 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm animate-in fade-in">
+            <div className="bg-white rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl border border-slate-100">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <span className="p-2 bg-emerald-50 text-emerald-600 rounded-xl">
+                    <CheckCircle2 className="w-5 h-5" />
+                  </span>
+                  <div>
+                    <h3 className="text-base font-bold text-slate-900">Trip Plan Created &amp; Saved!</h3>
+                    <p className="text-xs text-slate-500">Ready to share via link or download as PDF</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    setSavedShareModalPlan(null);
+                    onClose();
+                  }}
+                  className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 space-y-1">
+                <h4 className="font-bold text-sm text-slate-800">{savedShareModalPlan.name}</h4>
+                <div className="text-xs text-slate-500 flex items-center gap-2">
+                  <span>📍 {savedShareModalPlan.destination}</span>
+                  <span>&bull;</span>
+                  <span>{savedShareModalPlan.itinerary?.length} Day(s)</span>
+                  <span>&bull;</span>
+                  <span className="font-bold text-slate-700">₹{savedShareModalPlan.totalExpenses.toLocaleString()}</span>
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                  Direct Shareable Link (Anyone Can View)
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    readOnly
+                    value={generateShareablePlanUrl(savedShareModalPlan)}
+                    className="w-full px-3 py-2 text-xs font-mono border border-slate-300 rounded-xl bg-slate-50 text-slate-700 outline-none select-all"
+                  />
+                  <button
+                    onClick={async () => {
+                      await copyPlanShareLink(savedShareModalPlan);
+                      setCopiedToast(true);
+                      setTimeout(() => setCopiedToast(false), 3000);
+                    }}
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow shrink-0 transition"
+                  >
+                    {copiedToast ? 'Copied!' : 'Copy'}
+                  </button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => downloadPlanAsPdf(savedShareModalPlan)}
+                  className="py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 shadow transition"
+                >
+                  <Download className="w-4 h-4 text-amber-300" /> Download PDF
+                </button>
+
+                <a
+                  href={generateShareablePlanUrl(savedShareModalPlan)}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="py-2.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition text-center"
+                >
+                  <ExternalLink className="w-4 h-4" /> Open Plan View
+                </a>
+              </div>
+
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSavedShareModalPlan(null);
+                    onClose();
+                  }}
+                  className="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl transition"
+                >
+                  Done
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* DRAWER / PICKER: AVAILABLE CITY SPOTS (Supports Multi-Selection) */}
         {activeDayIndexForSpot !== null && (

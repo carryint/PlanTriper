@@ -5,12 +5,13 @@ import {
   Phone, Globe, Check, DollarSign, 
   Plane, Bus, Search, ArrowRight, ExternalLink,
   Calendar, Users, BookmarkPlus, X, FileText, CheckCircle2,
-  Church, Waves, Plus
+  Church, Waves, Plus, Share2, Download
 } from 'lucide-react';
 import { AITripPlannerModal } from '../../components/planner/AITripPlannerModal';
 import { ManualTripPlannerModal } from '../../components/planner/ManualTripPlannerModal';
 import type { Service, ServiceType, TripPlan } from '../../types';
 import { autoDetectLocation } from '../../data/geoDirectory';
+import { downloadPlanAsPdf, copyPlanShareLink, generateShareablePlanUrl } from '../../utils/pdfGenerator';
 
 export default function TravelerPortal() {
   const { destinations, services, plans, adBanners, toggleItemVisited, deletePlan, addPlan } = useAppStore();
@@ -34,6 +35,7 @@ export default function TravelerPortal() {
   // Modal for Viewing a Curated Plan's Details
   const [selectedViewingPlan, setSelectedViewingPlan] = useState<TripPlan | null>(null);
   const [savedSuccessMsg, setSavedSuccessMsg] = useState<string | null>(null);
+  const [shareToastMsg, setShareToastMsg] = useState<string | null>(null);
 
   // Distinct cities across destinations and added services
   const distinctCities = useMemo(() => {
@@ -248,6 +250,16 @@ export default function TravelerPortal() {
           >
             View in My Trips →
           </button>
+        </div>
+      )}
+
+      {shareToastMsg && (
+        <div className="p-4 bg-blue-600 text-white text-xs font-bold rounded-2xl flex items-center justify-between shadow-lg animate-in fade-in slide-in-from-top-2">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-5 h-5 text-emerald-300" />
+            <span>{shareToastMsg}</span>
+          </div>
+          <span className="text-[11px] text-blue-200">Anyone with the link can view &amp; navigate</span>
         </div>
       )}
 
@@ -958,11 +970,44 @@ export default function TravelerPortal() {
                   </div>
 
                   {/* Plan Footer */}
-                  <div className="bg-slate-50 p-4 border-t border-slate-200 flex items-center justify-between text-xs font-medium">
-                    <span className="text-slate-500">Estimated Total Expenditure:</span>
-                    <span className="text-base font-extrabold text-slate-900">
-                      ₹{plan.totalExpenses.toLocaleString()}
-                    </span>
+                  <div className="bg-slate-50 p-4 border-t border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+                    <div>
+                      <span className="text-slate-500 font-medium">Estimated Total:</span>
+                      <span className="text-base font-extrabold text-slate-900 ml-1.5">
+                        ₹{plan.totalExpenses.toLocaleString()}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <button
+                        onClick={() => downloadPlanAsPdf(plan)}
+                        className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow-sm transition flex items-center gap-1"
+                        title="Download formatted PDF or print"
+                      >
+                        <Download className="w-3.5 h-3.5 text-amber-300" /> Download PDF
+                      </button>
+
+                      <button
+                        onClick={async () => {
+                          await copyPlanShareLink(plan);
+                          setShareToastMsg(`Share link for "${plan.name}" copied to clipboard!`);
+                          setTimeout(() => setShareToastMsg(null), 3500);
+                        }}
+                        className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-sm transition flex items-center gap-1"
+                        title="Copy shareable link"
+                      >
+                        <Share2 className="w-3.5 h-3.5" /> Share Link
+                      </button>
+
+                      <a
+                        href={generateShareablePlanUrl(plan)}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="px-3 py-1.5 bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 font-bold text-xs rounded-xl transition flex items-center gap-1"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" /> Open View
+                      </a>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -1049,7 +1094,7 @@ export default function TravelerPortal() {
             </div>
 
             {/* Modal Footer */}
-            <div className="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
+            <div className="p-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3">
               <div>
                 <span className="text-xs text-slate-500">Estimated Total:</span>
                 <span className="text-base font-extrabold text-slate-900 ml-1.5">
@@ -1057,15 +1102,37 @@ export default function TravelerPortal() {
                 </span>
               </div>
 
-              <button
-                onClick={() => {
-                  handleSaveToMyTrips(selectedViewingPlan);
-                  setSelectedViewingPlan(null);
-                }}
-                className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs rounded-xl shadow-lg shadow-blue-500/25 flex items-center gap-1.5 transition"
-              >
-                <BookmarkPlus className="w-4 h-4" /> Save to My Trips & Track
-              </button>
+              <div className="flex items-center gap-2 flex-wrap">
+                <button
+                  onClick={() => downloadPlanAsPdf(selectedViewingPlan)}
+                  className="px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow transition flex items-center gap-1.5"
+                  title="Download as PDF or Print"
+                >
+                  <Download className="w-3.5 h-3.5 text-amber-300" /> Download PDF
+                </button>
+
+                <button
+                  onClick={async () => {
+                    await copyPlanShareLink(selectedViewingPlan);
+                    setShareToastMsg(`Share link for "${selectedViewingPlan.name}" copied to clipboard!`);
+                    setTimeout(() => setShareToastMsg(null), 3500);
+                  }}
+                  className="px-3.5 py-2 bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 font-bold text-xs rounded-xl transition flex items-center gap-1.5"
+                  title="Copy shareable link"
+                >
+                  <Share2 className="w-3.5 h-3.5" /> Share Link
+                </button>
+
+                <button
+                  onClick={() => {
+                    handleSaveToMyTrips(selectedViewingPlan);
+                    setSelectedViewingPlan(null);
+                  }}
+                  className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs rounded-xl shadow-lg shadow-blue-500/25 flex items-center gap-1.5 transition"
+                >
+                  <BookmarkPlus className="w-4 h-4" /> Save to My Trips &amp; Track
+                </button>
+              </div>
             </div>
           </div>
         </div>
