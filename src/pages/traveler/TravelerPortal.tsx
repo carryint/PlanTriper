@@ -1,13 +1,15 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useAppStore } from '../../store';
 import { 
   Compass, MapPin, Sparkles, Building, Utensils, Bike, Star, 
   Phone, Globe, Check, DollarSign, 
   Plane, Bus, Search, ArrowRight, ExternalLink,
-  Calendar, Users, BookmarkPlus, X, FileText, CheckCircle2
+  Calendar, Users, BookmarkPlus, X, FileText, CheckCircle2,
+  Church, Waves, Plus
 } from 'lucide-react';
 import { AITripPlannerModal } from '../../components/planner/AITripPlannerModal';
-import type { ServiceType, TripPlan } from '../../types';
+import { ManualTripPlannerModal } from '../../components/planner/ManualTripPlannerModal';
+import type { Service, ServiceType, TripPlan } from '../../types';
 
 export default function TravelerPortal() {
   const { destinations, services, plans, adBanners, toggleItemVisited, deletePlan, addPlan } = useAppStore();
@@ -18,22 +20,124 @@ export default function TravelerPortal() {
   const [selectedDestinationFilter, setSelectedDestinationFilter] = useState<string>('all');
   const [isPlannerOpen, setIsPlannerOpen] = useState(false);
   const [plannerDestination, setPlannerDestination] = useState<string | undefined>(undefined);
+  const [isManualPlannerOpen, setIsManualPlannerOpen] = useState(false);
+  const [manualPlannerCity, setManualPlannerCity] = useState<string | undefined>(undefined);
   const [activeView, setActiveView] = useState<'explore' | 'my-trips'>('explore');
 
   // Modal for Viewing a Curated Plan's Details
   const [selectedViewingPlan, setSelectedViewingPlan] = useState<TripPlan | null>(null);
   const [savedSuccessMsg, setSavedSuccessMsg] = useState<string | null>(null);
 
+  // Distinct cities across destinations and added services
+  const distinctCities = useMemo(() => {
+    const citySet = new Set<string>();
+    (destinations || []).forEach(d => { if (d.name) citySet.add(d.name.trim()); });
+    (services || []).forEach(s => {
+      if (s.city) citySet.add(s.city.trim());
+      else if (s.destination) citySet.add(s.destination.trim());
+    });
+    return Array.from(citySet).filter(Boolean);
+  }, [destinations, services]);
+
+  // Intelligent Search Matcher (handles compound queries like "destinations and hotels in Kochi")
+  const matchServiceWithQuery = (service: Service, query: string): boolean => {
+    if (!query.trim()) return true;
+
+    const rawLower = query.toLowerCase().trim();
+
+    // 1. Direct substring match in any property
+    const fullText = [
+      service.name,
+      service.city,
+      service.place,
+      service.postalCode,
+      service.destination,
+      service.country,
+      service.address,
+      service.type,
+      service.description,
+      service.providerName
+    ].filter(Boolean).join(' ').toLowerCase();
+
+    if (fullText.includes(rawLower)) return true;
+
+    // 2. Tokenized multi-word search
+    const noiseWords = new Set([
+      'and', 'in', 'of', 'the', 'for', 'at', 'to', 'all', 'show', 
+      'details', 'added', 'by', 'a', 'an', 'with', 'from', 'me', 'please', 'find', 'near'
+    ]);
+
+    const tokens = rawLower
+      .replace(/[^a-z0-9\s]/g, ' ')
+      .split(/\s+/)
+      .filter(t => t.length > 1 && !noiseWords.has(t));
+
+    if (tokens.length === 0) return true;
+
+    const hotelKeywords = ['hotel', 'hotels', 'stay', 'stays', 'resort', 'resorts', 'room', 'rooms', 'lodge'];
+    const shopKeywords = ['shop', 'shops', 'market', 'markets', 'bazaar', 'store', 'stores', 'shopping', 'antiques', 'spice', 'spices'];
+    const rentalKeywords = ['rental', 'rentals', 'bike', 'bikes', 'car', 'cars', 'scooter', 'scooters', 'rent', 'vehicle'];
+    const beachKeywords = ['beach', 'beaches', 'coast', 'coastal', 'sand', 'sea'];
+    const churchKeywords = ['church', 'churches', 'cathedral', 'temple', 'heritage', 'monument', 'basilica', 'mosque'];
+    const restKeywords = ['restaurant', 'restaurants', 'food', 'cafe', 'cafes', 'dining', 'shack', 'shacks', 'eat'];
+    const isDestKeyword = (t: string) => t.startsWith('destin') || t === 'spot' || t === 'spots' || t === 'place' || t === 'places' || t === 'attraction' || t === 'attractions';
+
+    const geoTokens = tokens.filter(tok => 
+      !hotelKeywords.includes(tok) &&
+      !shopKeywords.includes(tok) &&
+      !rentalKeywords.includes(tok) &&
+      !beachKeywords.includes(tok) &&
+      !churchKeywords.includes(tok) &&
+      !restKeywords.includes(tok) &&
+      !isDestKeyword(tok)
+    );
+
+    const serviceGeo = [service.city, service.place, service.destination, service.country, service.postalCode]
+      .filter(Boolean)
+      .join(' ')
+      .toLowerCase();
+
+    // If geographic tokens exist (e.g. "kochi", "682001", "fort"), they must match the service's location or name
+    if (geoTokens.length > 0) {
+      const geoMatch = geoTokens.some(tok => serviceGeo.includes(tok) || service.name.toLowerCase().includes(tok));
+      if (!geoMatch) return false;
+    }
+
+    const hasHotel = tokens.some(t => hotelKeywords.includes(t));
+    const hasShop = tokens.some(t => shopKeywords.includes(t));
+    const hasRental = tokens.some(t => rentalKeywords.includes(t));
+    const hasBeach = tokens.some(t => beachKeywords.includes(t));
+    const hasChurch = tokens.some(t => churchKeywords.includes(t));
+    const hasRest = tokens.some(t => restKeywords.includes(t));
+    const hasDest = tokens.some(t => isDestKeyword(t));
+
+    // "destinations and hotels in Kochi": hasDest is true, hasHotel is true -> returns all spots/hotels in Kochi
+    if (hasDest) {
+      return true;
+    }
+
+    if (hasHotel || hasShop || hasRental || hasBeach || hasChurch || hasRest) {
+      if (hasHotel && service.type === 'hotel') return true;
+      if (hasShop && service.type === 'shop') return true;
+      if (hasRental && service.type === 'rental') return true;
+      if (hasBeach && service.type === 'beach') return true;
+      if (hasChurch && service.type === 'church') return true;
+      if (hasRest && service.type === 'restaurant') return true;
+      return false;
+    }
+
+    return tokens.every(tok => fullText.includes(tok));
+  };
+
   // Filter approved services
   const approvedServices = (services || []).filter(s => s && s.status === 'approved');
 
   const filteredServices = approvedServices.filter(service => {
     const matchesTab = activeServiceTab === 'all' || service.type === activeServiceTab;
-    const matchesDest = selectedDestinationFilter === 'all' || service.destination.toLowerCase() === selectedDestinationFilter.toLowerCase();
-    const matchesSearch = !searchQuery || 
-      service.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      service.destination.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      service.address.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesDest = selectedDestinationFilter === 'all' || 
+      (service.city && service.city.toLowerCase() === selectedDestinationFilter.toLowerCase()) ||
+      service.destination.toLowerCase() === selectedDestinationFilter.toLowerCase();
+    const matchesSearch = matchServiceWithQuery(service, searchQuery);
     return matchesTab && matchesDest && matchesSearch;
   });
 
@@ -102,15 +206,27 @@ export default function TravelerPortal() {
           </button>
         </div>
 
-        <button
-          onClick={() => {
-            setPlannerDestination(undefined);
-            setIsPlannerOpen(true);
-          }}
-          className="w-full sm:w-auto px-5 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold text-sm rounded-xl shadow-lg shadow-amber-500/25 flex items-center justify-center gap-2 transition transform hover:-translate-y-0.5"
-        >
-          <Sparkles className="w-4 h-4" /> Generate Plan with AI
-        </button>
+        <div className="flex items-center gap-2.5 w-full sm:w-auto">
+          <button
+            onClick={() => {
+              setManualPlannerCity(selectedDestinationFilter !== 'all' ? selectedDestinationFilter : 'Kochi');
+              setIsManualPlannerOpen(true);
+            }}
+            className="flex-1 sm:flex-initial px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs sm:text-sm rounded-xl shadow-lg shadow-blue-500/20 flex items-center justify-center gap-1.5 transition transform hover:-translate-y-0.5"
+          >
+            <Compass className="w-4 h-4 text-amber-300" /> Build Manual Trip
+          </button>
+
+          <button
+            onClick={() => {
+              setPlannerDestination(undefined);
+              setIsPlannerOpen(true);
+            }}
+            className="flex-1 sm:flex-initial px-4 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold text-xs sm:text-sm rounded-xl shadow-lg shadow-amber-500/25 flex items-center justify-center gap-1.5 transition transform hover:-translate-y-0.5"
+          >
+            <Sparkles className="w-4 h-4 text-white" /> AI Trip Planner
+          </button>
+        </div>
       </div>
 
       {savedSuccessMsg && (
@@ -146,27 +262,63 @@ export default function TravelerPortal() {
                 Plan Your Trip Route & Spots Easily
               </h1>
               <p className="text-slate-200 text-sm sm:text-base leading-relaxed">
-                Discover verified hotels, authentic restaurants, bike & car rentals, and pristine beaches across top global and domestic destinations.
+                Discover verified hotels, authentic shops, bike & car rentals, beaches, and historic churches across destinations with exact Google Maps directions.
               </p>
 
               {/* Search Bar */}
-              <div className="pt-2 flex flex-col sm:flex-row gap-3">
-                <div className="relative flex-1">
-                  <Search className="w-5 h-5 absolute left-3.5 top-3 text-slate-400" />
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search Bali, Manali, Dubai, hotels, bike rentals..."
-                    className="w-full pl-11 pr-4 py-3 bg-white text-slate-800 rounded-xl text-sm font-medium focus:ring-4 focus:ring-blue-500/30 outline-none shadow-lg"
-                  />
+              <div className="pt-2 space-y-2">
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <div className="relative flex-1">
+                    <Search className="w-5 h-5 absolute left-3.5 top-3 text-slate-400" />
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Try: 'destinations and hotels in Kochi', 'bike rentals', 'Cherai beach'..."
+                      className="w-full pl-11 pr-4 py-3 bg-white text-slate-800 rounded-xl text-sm font-medium focus:ring-4 focus:ring-blue-500/30 outline-none shadow-lg"
+                    />
+                  </div>
+                  <button
+                    onClick={() => {
+                      setManualPlannerCity(selectedDestinationFilter !== 'all' ? selectedDestinationFilter : 'Kochi');
+                      setIsManualPlannerOpen(true);
+                    }}
+                    className="px-5 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-sm transition shadow-lg shrink-0 flex items-center justify-center gap-2"
+                  >
+                    <Compass className="w-4 h-4 text-amber-300" /> Build Route
+                  </button>
                 </div>
-                <button
-                  onClick={() => setIsPlannerOpen(true)}
-                  className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-sm transition shadow-lg shrink-0 flex items-center justify-center gap-2"
-                >
-                  <Sparkles className="w-4 h-4 text-amber-300" /> Plan with AI
-                </button>
+
+                {/* Quick Search Suggestions */}
+                <div className="flex flex-wrap items-center gap-1.5 text-xs">
+                  <span className="text-slate-300 text-[11px] font-medium mr-1">Popular searches:</span>
+                  {[
+                    'destinations and hotels in Kochi',
+                    'hotels in Kochi',
+                    'Cherai beach',
+                    'bike rentals',
+                    'St. Francis Church',
+                    'Jew Town shop'
+                  ].map((chip) => (
+                    <button
+                      key={chip}
+                      type="button"
+                      onClick={() => setSearchQuery(chip)}
+                      className="px-2.5 py-1 bg-white/20 hover:bg-white/30 backdrop-blur-md text-white rounded-lg text-[11px] font-medium transition"
+                    >
+                      {chip}
+                    </button>
+                  ))}
+                  {searchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setSearchQuery('')}
+                      className="px-2 py-0.5 bg-red-500/80 hover:bg-red-500 text-white rounded-lg text-[10px] font-bold ml-1 transition"
+                    >
+                      Clear ✕
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -300,6 +452,40 @@ export default function TravelerPortal() {
                 </div>
               ))}
             </div>
+
+            {(!plans || plans.length === 0) && (
+              <div className="bg-slate-50 border border-slate-200 rounded-3xl p-6 sm:p-8 text-center space-y-3">
+                <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center mx-auto">
+                  <Compass className="w-6 h-6" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-slate-800">No Pre-Built Plans Yet</h4>
+                  <p className="text-xs text-slate-500 max-w-md mx-auto mt-0.5">
+                    Start by creating your own personalized itinerary! Pick from verified Kochi hotels, beaches, churches, and bike rentals, or use AI to generate one automatically.
+                  </p>
+                </div>
+                <div className="flex flex-wrap items-center justify-center gap-2.5 pt-1">
+                  <button
+                    onClick={() => {
+                      setManualPlannerCity('Kochi');
+                      setIsManualPlannerOpen(true);
+                    }}
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl transition flex items-center gap-1.5 shadow"
+                  >
+                    <Compass className="w-3.5 h-3.5 text-amber-300" /> Make Manual Trip Route
+                  </button>
+                  <button
+                    onClick={() => {
+                      setPlannerDestination('Kochi');
+                      setIsPlannerOpen(true);
+                    }}
+                    className="px-4 py-2 bg-amber-400 hover:bg-amber-500 text-slate-950 font-bold text-xs rounded-xl transition flex items-center gap-1.5"
+                  >
+                    <Sparkles className="w-3.5 h-3.5" /> Plan with AI
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Destinations Grid */}
@@ -374,9 +560,9 @@ export default function TravelerPortal() {
           <div className="space-y-6 pt-6 border-t border-slate-200">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
-                <h2 className="text-2xl font-bold text-slate-800">Hotels, Rentals & Food Spots</h2>
+                <h2 className="text-2xl font-bold text-slate-800">Hotels, Rentals, Beaches & Food Spots</h2>
                 <p className="text-xs text-slate-500">
-                  Approved service providers. Book stays, rent bikes/cars, or discover top restaurants.
+                  Approved service providers & spots. Direct Google Maps navigation, phone numbers, and booking links.
                 </p>
               </div>
 
@@ -386,11 +572,11 @@ export default function TravelerPortal() {
                 <select
                   value={selectedDestinationFilter}
                   onChange={(e) => setSelectedDestinationFilter(e.target.value)}
-                  className="px-3 py-1.5 text-xs font-semibold border border-slate-300 rounded-xl bg-white focus:ring-2 focus:ring-blue-500"
+                  className="px-3 py-1.5 text-xs font-bold border border-slate-300 rounded-xl bg-white focus:ring-2 focus:ring-blue-500 shadow-sm"
                 >
-                  <option value="all">All Destinations</option>
-                  {destinations.map(d => (
-                    <option key={d.id} value={d.name}>{d.name}</option>
+                  <option value="all">All Destinations ({distinctCities.length} Cities)</option>
+                  {distinctCities.map(city => (
+                    <option key={city} value={city}>📍 {city}</option>
                   ))}
                 </select>
               </div>
@@ -399,16 +585,19 @@ export default function TravelerPortal() {
             {/* Service Type Tabs */}
             <div className="flex flex-wrap gap-2">
               {[
-                { id: 'all', label: 'All Services', icon: Compass },
-                { id: 'hotel', label: 'Hotels & Resorts', icon: Building },
-                { id: 'rental', label: 'Bike & Car Rentals', icon: Bike },
-                { id: 'restaurant', label: 'Restaurants & Shacks', icon: Utensils },
-                { id: 'spot', label: 'Beaches & Attractions', icon: MapPin },
+                { id: 'all', label: 'All Services & Spots', icon: Compass },
+                { id: 'hotel', label: 'Hotels & Stays', icon: Building },
+                { id: 'shop', label: 'Shops & Markets', icon: DollarSign },
+                { id: 'rental', label: 'Bike & Vehicle Rentals', icon: Bike },
+                { id: 'beach', label: 'Beaches & Coastlines', icon: Waves },
+                { id: 'church', label: 'Churches & Heritage', icon: Church },
+                { id: 'restaurant', label: 'Restaurants & Food', icon: Utensils },
+                { id: 'spot', label: 'Tourist Spots', icon: MapPin },
               ].map(({ id, label, icon: Icon }) => (
                 <button
                   key={id}
                   onClick={() => setActiveServiceTab(id as any)}
-                  className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition ${
+                  className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition ${
                     activeServiceTab === id
                       ? 'bg-blue-600 text-white shadow-sm'
                       : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
@@ -419,78 +608,155 @@ export default function TravelerPortal() {
               ))}
             </div>
 
+            {/* Location Plan Banner */}
+            <div className="bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 border border-blue-200/80 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-sm">
+              <div className="flex items-center gap-3 text-center sm:text-left">
+                <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-md">
+                  <Sparkles className="w-5 h-5 text-amber-300" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-slate-800">
+                    Planning a trip to {selectedDestinationFilter !== 'all' ? selectedDestinationFilter : 'Kochi'}?
+                  </h4>
+                  <p className="text-xs text-slate-600">
+                    Build a customized day-by-day travel route using these verified local hotels, beaches, churches, and bike rentals.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => {
+                  setManualPlannerCity(selectedDestinationFilter !== 'all' ? selectedDestinationFilter : 'Kochi');
+                  setIsManualPlannerOpen(true);
+                }}
+                className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs rounded-xl shadow-md transition flex items-center gap-1.5 shrink-0"
+              >
+                <Plus className="w-3.5 h-3.5" /> Make Manual Trip from {selectedDestinationFilter !== 'all' ? selectedDestinationFilter : 'Kochi'} Spots
+              </button>
+            </div>
+
             {/* Services Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredServices.map(service => (
                 <div
                   key={service.id}
-                  className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition flex flex-col group"
+                  className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition flex flex-col group justify-between"
                 >
-                  <div className="h-44 relative overflow-hidden bg-slate-100">
-                    <img
-                      src={service.images[0]}
-                      alt={service.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
-                    />
-                    <span className="absolute top-2.5 left-2.5 bg-slate-900/80 backdrop-blur text-white text-[11px] font-semibold px-2.5 py-0.5 rounded-full capitalize">
-                      {service.type}
-                    </span>
-                    <span className="absolute top-2.5 right-2.5 bg-white/95 backdrop-blur text-amber-600 text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow">
-                      <Star className="w-3.5 h-3.5 fill-current text-amber-500" /> {service.googleRating}
-                    </span>
-                    <span className="absolute bottom-2.5 left-2.5 bg-blue-600/90 backdrop-blur text-white text-[10px] font-bold px-2 py-0.5 rounded">
-                      {service.destination}
-                    </span>
-                  </div>
-
-                  <div className="p-4 flex-1 flex flex-col justify-between">
-                    <div>
-                      <h3 className="font-bold text-slate-800 text-base mb-1">{service.name}</h3>
-                      <p className="text-xs text-slate-500 flex items-center gap-1 mb-2">
-                        <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                        <span className="truncate">{service.address}</span>
-                      </p>
-                      <p className="text-xs text-slate-600 line-clamp-2 mb-3">{service.description}</p>
+                  <div>
+                    <div className="h-44 relative overflow-hidden bg-slate-100">
+                      <img
+                        src={service.images[0]}
+                        alt={service.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                      />
+                      <span className="absolute top-2.5 left-2.5 bg-slate-900/80 backdrop-blur text-white text-[11px] font-semibold px-2.5 py-0.5 rounded-full capitalize">
+                        {service.type}
+                      </span>
+                      <span className="absolute top-2.5 right-2.5 bg-white/95 backdrop-blur text-amber-600 text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow">
+                        <Star className="w-3.5 h-3.5 fill-current text-amber-500" /> {service.googleRating}
+                      </span>
+                      <span className="absolute bottom-2.5 left-2.5 bg-blue-600/90 backdrop-blur text-white text-[10px] font-bold px-2 py-0.5 rounded">
+                        📍 {service.city || service.destination}
+                      </span>
                     </div>
 
-                    <div className="pt-3 border-t border-slate-100 space-y-2">
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="text-slate-500 font-medium">
-                          {service.priceLevel ? `Tier: ${service.priceLevel}` : 'Daily Rate'}
+                    <div className="p-4 space-y-2">
+                      <h3 className="font-bold text-slate-800 text-base leading-snug line-clamp-1">{service.name}</h3>
+                      
+                      {/* Place Area & Postal Code */}
+                      <div className="flex flex-wrap items-center gap-1.5 text-xs">
+                        <span className="inline-flex items-center gap-1 font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md text-[11px]">
+                          <MapPin className="w-3 h-3 text-blue-500 shrink-0" />
+                          {service.place || service.city}
                         </span>
-                        {service.pricePerDay && (
-                          <span className="font-bold text-slate-800 text-sm">
-                            ₹{service.pricePerDay} <span className="text-[10px] text-slate-400">/ day</span>
+                        {service.postalCode && (
+                          <span className="text-[11px] text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded font-mono font-medium">
+                            PIN {service.postalCode}
                           </span>
                         )}
                       </div>
 
-                      <div className="flex items-center gap-2 pt-1">
+                      <p className="text-xs text-slate-600 line-clamp-2">{service.description}</p>
+                    </div>
+                  </div>
+
+                  <div className="p-4 pt-0 space-y-2.5">
+                    <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                      <span className="text-slate-500 font-medium">
+                        {service.priceLevel ? `Tier: ${service.priceLevel}` : 'Daily Rate'}
+                      </span>
+                      {service.pricePerDay !== undefined && (
+                        <span className="font-bold text-slate-800 text-sm">
+                          {service.pricePerDay === 0 ? 'Free Entry' : `₹${service.pricePerDay.toLocaleString()}`}
+                          {service.pricePerDay > 0 && <span className="text-[10px] text-slate-400"> / day</span>}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Google Maps link & Action Buttons */}
+                    <div className="grid grid-cols-2 gap-2 pt-1">
+                      <a
+                        href={service.googleMapUrl || `https://maps.google.com/?q=${encodeURIComponent(`${service.name} ${service.place || ''} ${service.city}`)}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-xl text-xs font-bold flex items-center justify-center gap-1 transition border border-emerald-200"
+                        title="Open Location on Google Maps"
+                      >
+                        <MapPin className="w-3.5 h-3.5 text-red-500" /> Google Maps
+                      </a>
+
+                      <button
+                        onClick={() => {
+                          setManualPlannerCity(service.city || service.destination);
+                          setIsManualPlannerOpen(true);
+                        }}
+                        className="py-2 bg-amber-400 hover:bg-amber-500 text-slate-950 rounded-xl text-xs font-bold flex items-center justify-center gap-1 transition shadow-sm"
+                        title="Build an itinerary using this spot"
+                      >
+                        <Sparkles className="w-3.5 h-3.5" /> Plan Trip
+                      </button>
+                    </div>
+
+                    {/* Call & Website */}
+                    <div className="flex items-center gap-2 pt-0.5">
+                      <a
+                        href={`tel:${service.contact}`}
+                        className="flex-1 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-[11px] font-semibold flex items-center justify-center gap-1 transition"
+                      >
+                        <Phone className="w-3 h-3" /> Call
+                      </a>
+                      {service.website && (
                         <a
-                          href={`tel:${service.contact}`}
-                          className="flex-1 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold flex items-center justify-center gap-1 transition"
+                          href={service.website}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="flex-1 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-[11px] font-semibold flex items-center justify-center gap-1 transition"
                         >
-                          <Phone className="w-3 h-3" /> Call Provider
+                          <Globe className="w-3 h-3" /> Website
                         </a>
-                        {service.website && (
-                          <a
-                            href={service.website}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="flex-1 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-xs font-bold flex items-center justify-center gap-1 transition"
-                          >
-                            <Globe className="w-3 h-3" /> Website
-                          </a>
-                        )}
-                      </div>
+                      )}
                     </div>
                   </div>
                 </div>
               ))}
 
               {filteredServices.length === 0 && (
-                <div className="col-span-full text-center py-12 bg-white rounded-2xl border border-dashed border-slate-200">
-                  <p className="text-slate-500 text-sm">No services found matching your filter criteria.</p>
+                <div className="col-span-full text-center py-12 bg-white rounded-2xl border border-dashed border-slate-200 space-y-3">
+                  <Compass className="w-10 h-10 text-slate-300 mx-auto" />
+                  <div>
+                    <p className="text-slate-800 font-bold text-sm">No spots found matching your filter criteria</p>
+                    <p className="text-slate-500 text-xs mt-0.5">Try searching for &quot;Kochi&quot; or &quot;destinations and hotels in Kochi&quot;</p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setSearchQuery('');
+                      setActiveServiceTab('all');
+                      setSelectedDestinationFilter('all');
+                    }}
+                    className="px-4 py-2 bg-blue-50 text-blue-700 text-xs font-bold rounded-xl hover:bg-blue-100 transition"
+                  >
+                    Reset All Filters
+                  </button>
                 </div>
               )}
             </div>
@@ -774,6 +1040,13 @@ export default function TravelerPortal() {
         isOpen={isPlannerOpen}
         onClose={() => setIsPlannerOpen(false)}
         initialDestination={plannerDestination}
+      />
+
+      {/* Manual Trip Route Planner Modal */}
+      <ManualTripPlannerModal
+        isOpen={isManualPlannerOpen}
+        onClose={() => setIsManualPlannerOpen(false)}
+        initialCity={manualPlannerCity}
       />
     </div>
   );

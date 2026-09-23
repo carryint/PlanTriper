@@ -19,13 +19,17 @@ interface AppState {
   // Theme & Branding
   setTheme: (themeUpdates: Partial<AppTheme>) => void;
   
-  // Services & Providers
+  // Destinations
+  addDestination: (dest: Destination) => void;
+  deleteDestination: (id: string) => void;
+  
+  // Services, Places & Spots (Hotels, Shops, Bike Rentals, Beaches, Churches, Spots)
   addService: (service: Service) => void;
   updateServiceStatus: (id: string, status: 'approved' | 'rejected') => void;
   toggleFeaturedService: (id: string) => void;
   deleteService: (id: string) => void;
   
-  // Plans & AI Generator
+  // Plans
   addPlan: (plan: TripPlan) => void;
   updatePlan: (id: string, updates: Partial<TripPlan>) => void;
   toggleItemVisited: (planId: string, dayId: string, itemId: string) => void;
@@ -59,7 +63,7 @@ export const defaultTheme: AppTheme = {
 export const useAppStore = create<AppState>()(
   persist(
     (set) => ({
-      currentUser: seedUsers[0], // default to admin user
+      currentUser: seedUsers[0],
       theme: defaultTheme,
       destinations: seedDestinations,
       services: seedServices,
@@ -73,10 +77,45 @@ export const useAppStore = create<AppState>()(
       setTheme: (themeUpdates) => set((state) => ({ 
         theme: { ...(state.theme || defaultTheme), ...themeUpdates } 
       })),
-      
-      addService: (service) => set((state) => ({ 
-        services: [service, ...(state.services || [])] 
+
+      addDestination: (dest) => set((state) => ({
+        destinations: [...(state.destinations || []).filter(d => d.name.toLowerCase() !== dest.name.toLowerCase()), dest]
       })),
+
+      deleteDestination: (id) => set((state) => ({
+        destinations: (state.destinations || []).filter((d) => d.id !== id)
+      })),
+      
+      addService: (service) => set((state) => {
+        // Auto-create destination for the city if not present
+        const cityName = service.city?.trim() || service.destination?.trim() || 'New City';
+        const existingDest = (state.destinations || []).find(d => d.name.toLowerCase() === cityName.toLowerCase());
+        let updatedDestinations = state.destinations || [];
+        
+        if (!existingDest && cityName) {
+          const newDest: Destination = {
+            id: `dest_${Date.now()}`,
+            name: cityName,
+            country: service.country || 'Global',
+            tagline: `Explore verified hotels, shops, rentals, and spots in ${cityName}`,
+            image: service.images[0] || 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=1200&q=80',
+            category: service.type === 'beach' ? 'Beach' : service.type === 'church' ? 'Heritage' : 'City',
+            popularSpotsCount: 1
+          };
+          updatedDestinations = [...updatedDestinations, newDest];
+        } else if (existingDest) {
+          updatedDestinations = updatedDestinations.map(d => 
+            d.name.toLowerCase() === cityName.toLowerCase() 
+              ? { ...d, popularSpotsCount: (d.popularSpotsCount || 0) + 1 } 
+              : d
+          );
+        }
+
+        return {
+          services: [service, ...(state.services || [])],
+          destinations: updatedDestinations
+        };
+      }),
       
       updateServiceStatus: (id, status) => set((state) => ({
         services: (state.services || []).map((s) => 
@@ -115,8 +154,7 @@ export const useAppStore = create<AppState>()(
                 ...day,
                 items: day.items.map((item) => {
                   if (item.id !== itemId) return item;
-                  const newVisited = !item.visited;
-                  return { ...item, visited: newVisited };
+                  return { ...item, visited: !item.visited };
                 })
               };
             })
@@ -157,7 +195,7 @@ export const useAppStore = create<AppState>()(
       })),
 
       resetAll: () => {
-        localStorage.removeItem('plantriper-storage-v2');
+        localStorage.removeItem('plantriper-storage-v4');
         set({
           currentUser: seedUsers[0],
           theme: defaultTheme,
@@ -170,7 +208,7 @@ export const useAppStore = create<AppState>()(
       }
     }),
     {
-      name: 'plantriper-storage-v2',
+      name: 'plantriper-storage-v4',
       merge: (persistedState: any, currentState) => {
         return {
           ...currentState,
@@ -179,17 +217,11 @@ export const useAppStore = create<AppState>()(
             ...defaultTheme,
             ...(persistedState?.theme || {})
           },
-          destinations: (persistedState?.destinations && persistedState.destinations.length > 0) 
-            ? persistedState.destinations 
-            : seedDestinations,
-          services: (persistedState?.services && persistedState.services.length > 0) 
-            ? persistedState.services 
-            : seedServices,
-          plans: (persistedState?.plans && persistedState.plans.length > 0) 
-            ? persistedState.plans 
-            : seedPlans,
-          adBanners: persistedState?.adBanners || seedAds,
-          shareLinks: persistedState?.shareLinks || seedShareLinks,
+          destinations: persistedState?.destinations ?? seedDestinations,
+          services: persistedState?.services ?? seedServices,
+          plans: persistedState?.plans ?? seedPlans,
+          adBanners: persistedState?.adBanners ?? seedAds,
+          shareLinks: persistedState?.shareLinks ?? seedShareLinks,
         };
       }
     }

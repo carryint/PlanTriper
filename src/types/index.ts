@@ -8,7 +8,16 @@ export interface User {
   points?: number;
 }
 
-export type ServiceType = 'hotel' | 'restaurant' | 'rental' | 'spot';
+export type ServiceType = 
+  | 'hotel' 
+  | 'shop' 
+  | 'rental' 
+  | 'beach' 
+  | 'church' 
+  | 'restaurant' 
+  | 'spot' 
+  | 'other';
+
 export type ServiceStatus = 'pending' | 'approved' | 'rejected';
 
 export interface Service {
@@ -19,8 +28,16 @@ export interface Service {
   type: ServiceType;
   status: ServiceStatus;
   name: string;
-  destination: string;
+  
+  // Detailed Geographic Information
+  country: string;
+  city: string;
+  place: string; // Specific neighborhood / area (e.g. Fort Kochi, Marine Drive)
+  postalCode: string; // Pin code / zip code
+  destination: string; // Display string e.g. "Kochi, India"
   address: string;
+  googleMapUrl: string; // Google Maps URL for exact navigation
+  
   contact: string;
   website?: string;
   googleRating: number;
@@ -28,7 +45,6 @@ export interface Service {
   pricePerDay?: number;
   description: string;
   images: string[];
-  googleMapUrl?: string;
   featured?: boolean;
   createdAt: string;
 }
@@ -69,11 +85,13 @@ export interface ItineraryItem {
   time: string;
   location: string;
   description: string;
-  type: 'spot' | 'restaurant' | 'rental' | 'hotel' | 'transit';
+  type: ServiceType | 'transit';
   visited: boolean;
   cost: number;
   bookingUrl?: string;
+  googleMapUrl?: string;
   imageUrl?: string;
+  serviceId?: string; // Reference to added spot
 }
 
 export interface ItineraryDay {
@@ -88,7 +106,9 @@ export interface TripPlan {
   id: string;
   travelerId: string;
   name: string;
-  destination: string;
+  destination: string; // e.g. "Kochi"
+  country?: string;
+  city?: string;
   startDate: string;
   endDate: string;
   transportMode: 'flight' | 'train' | 'bus' | 'rental';

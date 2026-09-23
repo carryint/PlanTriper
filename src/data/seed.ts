@@ -2,342 +2,162 @@ import type { TripPlan, Service, User, Destination, AdBanner, ShareLink } from '
 
 export const seedUsers: User[] = [
   { id: 'admin1', name: 'PlanTriper Admin', email: 'admin@plantriper.com', role: 'admin' },
-  { id: 'provider1', name: 'Oceanic Hospitality Group', email: 'partner@oceanic.com', role: 'provider' },
-  { id: 'traveler1', name: 'Alex Wanderer', email: 'alex@travel.com', role: 'traveler', points: 340 },
+  { id: 'traveler1', name: 'Alex Traveler', email: 'traveler@plantriper.com', role: 'traveler', points: 0 },
 ];
 
+// Clean starter destinations - dynamic destination creation is available in Admin
 export const seedDestinations: Destination[] = [
   {
-    id: 'dest_bali',
-    name: 'Bali',
-    country: 'Indonesia',
-    tagline: 'Tropical paradise of volcanic mountains, beaches, and coral reefs',
-    image: 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&w=1200&q=80',
-    category: 'Beach',
-    popularSpotsCount: 48
-  },
-  {
-    id: 'dest_manali',
-    name: 'Manali & Himalayas',
+    id: 'dest_kochi',
+    name: 'Kochi',
     country: 'India',
-    tagline: 'Snow-capped peaks, pine forests, and adventure valleys',
-    image: 'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?auto=format&fit=crop&w=1200&q=80',
-    category: 'Mountain',
-    popularSpotsCount: 32
-  },
-  {
-    id: 'dest_dubai',
-    name: 'Dubai',
-    country: 'United Arab Emirates',
-    tagline: 'Futuristic architecture, luxury desert safaris, and lively nightlife',
-    image: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=1200&q=80',
-    category: 'City',
-    popularSpotsCount: 56
-  },
-  {
-    id: 'dest_kerala',
-    name: 'Kerala',
-    country: 'India',
-    tagline: 'Serene backwaters, tea gardens, and lush tropical landscapes',
-    image: 'https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?auto=format&fit=crop&w=1200&q=80',
+    tagline: 'Historic spice port, colonial heritage, backwaters and coastal beaches',
+    image: 'https://images.unsplash.com/photo-1593693397690-362cb9666fc2?auto=format&fit=crop&w=1200&q=80',
     category: 'Heritage',
-    popularSpotsCount: 40
-  },
-  {
-    id: 'dest_goa',
-    name: 'Goa',
-    country: 'India',
-    tagline: 'Golden beaches, Portuguese heritage, and vibrant coastal shacks',
-    image: 'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?auto=format&fit=crop&w=1200&q=80',
-    category: 'Beach',
-    popularSpotsCount: 29
-  },
-  {
-    id: 'dest_paris',
-    name: 'Paris',
-    country: 'France',
-    tagline: 'City of light, world-class gastronomy, and timeless arts',
-    image: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=1200&q=80',
-    category: 'City',
-    popularSpotsCount: 65
+    popularSpotsCount: 4
   }
 ];
 
+// Starter verified items for Kochi illustrating the new structure with country, city, place, postal code, and Google Map links
 export const seedServices: Service[] = [
-  // Bali
   {
-    id: 'srv_bali_1',
-    providerId: 'provider1',
-    providerName: 'Maya Ubud Resorts',
-    providerEmail: 'resv@mayaubud.com',
+    id: 'srv_kochi_hotel_1',
+    providerId: 'admin_created',
+    providerName: 'Brunton Boatyard',
+    providerEmail: 'brunton@cghearth.com',
     type: 'hotel',
     status: 'approved',
-    name: 'Maya Ubud Luxury Valley Resort',
-    destination: 'Bali',
-    address: 'Jl. Gunung Sari, Peliatan, Ubud, Bali',
-    contact: '+62 361 977888',
-    website: 'https://mayaresorts.com',
-    googleRating: 4.8,
-    priceLevel: 'Luxury',
-    pricePerDay: 8500,
-    description: 'Breathtaking valley views, infinity river pools, and signature Balinese spa villas.',
-    images: ['https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=800&q=80'],
-    googleMapUrl: 'https://maps.google.com/?q=Maya+Ubud+Resort',
-    featured: true,
-    createdAt: '2026-09-20'
-  },
-  {
-    id: 'srv_bali_2',
-    providerId: 'provider1',
-    providerName: 'Bali Ride Scooters',
-    providerEmail: 'scooters@baliride.com',
-    type: 'rental',
-    status: 'approved',
-    name: 'Bali Premium NMAX & Bike Rental',
-    destination: 'Bali',
-    address: 'Seminyak & Canggu Hub, Bali',
-    contact: '+62 812 3456 7890',
-    website: 'https://baliride.id',
-    googleRating: 4.9,
-    priceLevel: 'Budget',
-    pricePerDay: 600,
-    description: 'Reliable Yamaha NMAX and Honda Scoopy automatic bikes delivered straight to your hotel or airport.',
-    images: ['https://images.unsplash.com/photo-1558981403-c5f9899a28bc?auto=format&fit=crop&w=800&q=80'],
-    googleMapUrl: 'https://maps.google.com/?q=Seminyak+Bali',
-    featured: true,
-    createdAt: '2026-09-21'
-  },
-  // Manali
-  {
-    id: 'srv_manali_1',
-    providerId: 'provider1',
-    providerName: 'Himalayan Escapes',
-    providerEmail: 'contact@himalayanadventures.in',
-    type: 'hotel',
-    status: 'approved',
-    name: 'The Himalayan Pine Glass Cottage',
-    destination: 'Manali & Himalayas',
-    address: 'Old Manali Road, Himachal Pradesh',
-    contact: '+91 98160 12345',
+    name: 'Brunton Boatyard Heritage Hotel',
+    country: 'India',
+    city: 'Kochi',
+    place: 'Fort Kochi',
+    postalCode: '682001',
+    destination: 'Kochi',
+    address: '1/498, Calvathy Road, Fort Kochi, Kochi, Kerala',
+    googleMapUrl: 'https://maps.google.com/?q=Brunton+Boatyard+Fort+Kochi',
+    contact: '+91 484 221 5461',
+    website: 'https://www.cghearth.com/brunton-boatyard',
     googleRating: 4.7,
-    priceLevel: 'Moderate',
-    pricePerDay: 4200,
-    description: 'Panoramic glass bedroom overlooking apple orchards and towering snow-covered peaks.',
-    images: ['https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=800&q=80'],
-    featured: true,
-    createdAt: '2026-09-18'
-  },
-  {
-    id: 'srv_manali_2',
-    providerId: 'provider1',
-    providerName: 'Rohtang 4x4 Adventures',
-    providerEmail: 'booking@rohtangexpeditions.com',
-    type: 'rental',
-    status: 'pending',
-    name: 'Thar & Himalayan 4x4 Mountain Fleet',
-    destination: 'Manali & Himalayas',
-    address: 'Mall Road, Manali',
-    contact: '+91 98160 54321',
-    googleRating: 4.9,
-    priceLevel: 'Moderate',
-    pricePerDay: 3500,
-    description: 'Rugged 4WD Mahindra Thars equipped with GPS, snow chains, and adventure gear for Spiti and Solang trips.',
-    images: ['https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=800&q=80'],
-    createdAt: '2026-09-22'
-  },
-  // Dubai
-  {
-    id: 'srv_dubai_1',
-    providerId: 'provider1',
-    providerName: 'Emirates Grand Stays',
-    providerEmail: 'info@dubaiapartments.ae',
-    type: 'hotel',
-    status: 'approved',
-    name: 'Marina Skyview Luxury Suites',
-    destination: 'Dubai',
-    address: 'Dubai Marina Walk, Dubai, UAE',
-    contact: '+971 4 456 7890',
-    website: 'https://marinaskyview.ae',
-    googleRating: 4.9,
     priceLevel: 'Luxury',
-    pricePerDay: 12000,
-    description: 'High-floor suites with floor-to-ceiling vistas of Dubai Marina yacht harbor and JBR beach.',
-    images: ['https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=800&q=80'],
+    pricePerDay: 11000,
+    description: 'Victorian shipyard inspired waterfront luxury hotel overlooking the Arabian Sea harbor and passing ships.',
+    images: ['https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80'],
     featured: true,
-    createdAt: '2026-09-19'
+    createdAt: '2026-09-23'
   },
   {
-    id: 'srv_dubai_2',
-    providerId: 'provider1',
-    providerName: 'Al Fanar Heritage',
-    providerEmail: 'contact@alfanarrestaurant.com',
-    type: 'restaurant',
+    id: 'srv_kochi_church_1',
+    providerId: 'admin_created',
+    providerName: 'St. Francis Heritage Trust',
+    providerEmail: 'heritage@fortkochi.org',
+    type: 'church',
     status: 'approved',
-    name: 'Al Fanar Emirati Heritage Bistro',
-    destination: 'Dubai',
-    address: 'Dubai Festival City Mall, Waterfront Centre',
-    contact: '+971 4 232 9966',
+    name: 'St. Francis Church (Oldest European Church in India)',
+    country: 'India',
+    city: 'Kochi',
+    place: 'Fort Kochi',
+    postalCode: '682001',
+    destination: 'Kochi',
+    address: 'Opposite Parade Ground, Fort Kochi, Kochi, Kerala',
+    googleMapUrl: 'https://maps.google.com/?q=St+Francis+Church+Fort+Kochi',
+    contact: '+91 484 221 7505',
+    website: 'https://keralatourism.org/destination/st-francis-church-kochi',
+    googleRating: 4.6,
+    priceLevel: 'Free',
+    pricePerDay: 0,
+    description: 'Historic landmark church originally built in 1503 where explorer Vasco da Gama was initially buried.',
+    images: ['https://images.unsplash.com/photo-1548625361-195fe61a55c3?auto=format&fit=crop&w=800&q=80'],
+    featured: true,
+    createdAt: '2026-09-23'
+  },
+  {
+    id: 'srv_kochi_beach_1',
+    providerId: 'admin_created',
+    providerName: 'Cherai Coastal Tourism',
+    providerEmail: 'info@cheraibeach.com',
+    type: 'beach',
+    status: 'approved',
+    name: 'Cherai Beach & Backwaters',
+    country: 'India',
+    city: 'Kochi',
+    place: 'Vypin Island',
+    postalCode: '683514',
+    destination: 'Kochi',
+    address: 'Cherai Beach Road, Vypin Island, Kochi, Kerala',
+    googleMapUrl: 'https://maps.google.com/?q=Cherai+Beach+Kochi',
+    contact: '+91 484 248 8888',
+    googleRating: 4.5,
+    priceLevel: 'Free',
+    pricePerDay: 0,
+    description: '10km long golden sand beach known for calm swimming waters, dolphin sightings, and bordering coconut lagoons.',
+    images: ['https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80'],
+    featured: true,
+    createdAt: '2026-09-23'
+  },
+  {
+    id: 'srv_kochi_rental_1',
+    providerId: 'admin_created',
+    providerName: 'Kochi Coastal Wheels',
+    providerEmail: 'rentals@coastalwheelskochi.in',
+    type: 'rental',
+    status: 'approved',
+    name: 'Kochi Royal Enfield & Scooter Rentals',
+    country: 'India',
+    city: 'Kochi',
+    place: 'Marine Drive & Fort Kochi',
+    postalCode: '682031',
+    destination: 'Kochi',
+    address: 'Marine Drive Walkway & Princess Street Hub, Kochi',
+    googleMapUrl: 'https://maps.google.com/?q=Marine+Drive+Kochi',
+    contact: '+91 98470 11223',
+    website: 'https://coastalwheelskochi.in',
+    googleRating: 4.8,
+    priceLevel: 'Budget',
+    pricePerDay: 650,
+    description: 'Daily and weekly rentals of Royal Enfield Classics, Honda Activas, and automatic gearless scooters with sanitized helmets.',
+    images: ['https://images.unsplash.com/photo-1558981403-c5f9899a28bc?auto=format&fit=crop&w=800&q=80'],
+    featured: true,
+    createdAt: '2026-09-23'
+  },
+  {
+    id: 'srv_kochi_shop_1',
+    providerId: 'admin_created',
+    providerName: 'Jew Town Spice Markets',
+    providerEmail: 'spices@jewtownkochi.com',
+    type: 'shop',
+    status: 'approved',
+    name: 'Jew Town Heritage Antiques & Spice Bazaar',
+    country: 'India',
+    city: 'Kochi',
+    place: 'Mattancherry',
+    postalCode: '682002',
+    destination: 'Kochi',
+    address: 'Synagogue Lane, Jew Town, Mattancherry, Kochi',
+    googleMapUrl: 'https://maps.google.com/?q=Jew+Town+Mattancherry+Kochi',
+    contact: '+91 484 222 4114',
     googleRating: 4.6,
     priceLevel: 'Moderate',
-    pricePerDay: 1500,
-    description: 'Authentic 1960s Emirati culinary journey serving fresh seafood Machboos and warm luqaimat pastries.',
-    images: ['https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80'],
-    createdAt: '2026-09-20'
-  },
-  // Goa
-  {
-    id: 'srv_goa_1',
-    providerId: 'provider1',
-    providerName: 'Coastal Hospitality Goa',
-    providerEmail: 'host@goahotels.com',
-    type: 'hotel',
-    status: 'approved',
-    name: 'Sunset Beach Club & Villas',
-    destination: 'Goa',
-    address: 'Baga-Calangute Coastal Road, North Goa',
-    contact: '+91 98765 43210',
-    website: 'https://sunsetbeachgoa.com',
-    googleRating: 4.5,
-    priceLevel: 'Moderate',
-    pricePerDay: 4800,
-    description: 'Boutique resort located steps from Baga beach with swimming pools and palm gardens.',
-    images: ['https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80'],
-    googleMapUrl: 'https://maps.google.com/?q=Baga+Beach+Goa',
-    featured: true,
-    createdAt: '2026-09-15'
-  },
-  {
-    id: 'srv_goa_2',
-    providerId: 'provider1',
-    providerName: 'Goa Wheels',
-    providerEmail: 'contact@goawheels.com',
-    type: 'rental',
-    status: 'pending',
-    name: 'Goa Royal Enfield & Activa Rentals',
-    destination: 'Goa',
-    address: 'Near Calangute Circle, North Goa',
-    contact: '+91 98765 43212',
-    googleRating: 4.8,
-    priceLevel: 'Budget',
     pricePerDay: 500,
-    description: 'Doorstep bike delivery with sanitized helmets and instant documentation.',
-    images: ['https://images.unsplash.com/photo-1558981403-c5f9899a28bc?auto=format&fit=crop&w=800&q=80'],
-    createdAt: '2026-09-22'
+    description: 'Aromatic traditional market selling authentic Malabar black pepper, cardamom, cinnamon, and carved colonial wood antiques.',
+    images: ['https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80'],
+    featured: true,
+    createdAt: '2026-09-23'
   }
 ];
 
-export const seedAds: AdBanner[] = [
-  {
-    id: 'ad_1',
-    title: 'Fly to Bali with 25% Off Airlines',
-    subtitle: 'Exclusive partner airline discount for PlanTriper members',
-    imageUrl: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80',
-    targetUrl: 'https://www.skyscanner.com',
-    active: true,
-    tag: 'Flight Deal'
-  },
-  {
-    id: 'ad_2',
-    title: 'Himalayan Luxury Glamping Experience',
-    subtitle: 'Book 3 nights get 1 free with complimentary bonfire & stargazing',
-    imageUrl: 'https://images.unsplash.com/photo-1510312305653-8ed496efae75?auto=format&fit=crop&w=1200&q=80',
-    targetUrl: 'https://booking.com',
-    active: true,
-    tag: 'Special Promo'
-  }
-];
+// Clean starter ads & share links
+export const seedAds: AdBanner[] = [];
 
 export const seedShareLinks: ShareLink[] = [
   {
-    id: 'link_1',
+    id: 'link_default',
     code: 'traveler-portal',
     targetView: 'traveler',
-    label: 'Official Traveler Community Link',
-    createdAt: '2026-09-22',
-    clicks: 142
-  },
-  {
-    id: 'link_2',
-    code: 'explore-himalayas',
-    targetView: 'destination',
-    label: 'Himalaya Discovery Campaign',
-    createdAt: '2026-09-22',
-    clicks: 89
+    label: 'Main Public Traveler Link',
+    createdAt: '2026-09-23',
+    clicks: 12
   }
 ];
 
-export const seedPlans: TripPlan[] = [
-  {
-    id: 'plan_bali',
-    travelerId: 'traveler1',
-    name: 'Bali Tropical Discovery & Culture',
-    destination: 'Bali',
-    startDate: '2026-10-12',
-    endDate: '2026-10-16',
-    transportMode: 'flight',
-    travelersCount: 2,
-    status: 'planned',
-    totalExpenses: 46000,
-    rewardPointsEarned: 240,
-    itinerary: [
-      {
-        id: 'day1',
-        dayNumber: 1,
-        title: 'Arrival in Denpasar & Ubud Rainforest Valley',
-        items: [
-          { id: 'b1', time: '10:00 AM', location: 'Ngurah Rai Airport (DPS)', description: 'Arrival and private airport pickup to Ubud hotel.', type: 'transit', visited: true, cost: 2500 },
-          { id: 'b2', time: '01:00 PM', location: 'Maya Ubud Resort', description: 'Check-in, welcome drinks, relax overlooking the Petanu river.', type: 'hotel', visited: true, cost: 8500 },
-          { id: 'b3', time: '04:30 PM', location: 'Tegallalang Rice Terraces', description: 'Walk through cascading UNESCO green terraces and scenic swings.', type: 'spot', visited: false, cost: 600 },
-          { id: 'b4', time: '07:30 PM', location: 'Bebek Bengil (Dirty Duck)', description: 'Crispy Balinese duck dinner in open-air garden gazebo.', type: 'restaurant', visited: false, cost: 1800 }
-        ]
-      },
-      {
-        id: 'day2',
-        dayNumber: 2,
-        title: 'Temples, Waterfalls & Sunset Cliff',
-        items: [
-          { id: 'b5', time: '09:00 AM', location: 'Tegenungan Waterfall', description: 'Morning swim in the natural plunge pool beneath the jungle falls.', type: 'spot', visited: false, cost: 400 },
-          { id: 'b6', time: '01:00 PM', location: 'Uluwatu Clifftop', description: 'Scenic coast drive and lunch with Indian Ocean views.', type: 'restaurant', visited: false, cost: 2200 },
-          { id: 'b7', time: '05:30 PM', location: 'Uluwatu Temple', description: 'Famous sunset Kecak Fire Dance performance high on the cliffs.', type: 'spot', visited: false, cost: 1500 }
-        ]
-      }
-    ]
-  },
-  {
-    id: 'plan_goa',
-    travelerId: 'traveler1',
-    name: 'Goa Coastal & Heritage Tour',
-    destination: 'Goa',
-    startDate: '2026-09-25',
-    endDate: '2026-09-27',
-    transportMode: 'train',
-    travelersCount: 5,
-    status: 'planned',
-    totalExpenses: 21500,
-    rewardPointsEarned: 150,
-    itinerary: [
-      {
-        id: 'day1',
-        dayNumber: 1,
-        title: 'North Goa Beaches & Sunset Forts',
-        items: [
-          { id: 'g1', time: '09:00 AM', location: 'Tivim Station Arrival', description: 'Arrival at Tivim. Hired taxi to North Goa accommodation.', type: 'transit', visited: false, cost: 1000 },
-          { id: 'g2', time: '11:00 AM', location: 'Hotel Check-in Baga', description: 'Check into hotel near Baga/Calangute coastal stretch.', type: 'hotel', visited: false, cost: 5000 },
-          { id: 'g3', time: '01:30 PM', location: 'Baga Beach Shack', description: 'Fresh Goan fish thali and beachside cold beverages.', type: 'restaurant', visited: false, cost: 1500 },
-          { id: 'g4', time: '04:30 PM', location: 'Chapora Fort (Dil Chahta Hai)', description: 'Panoramic sea views and cliff sunset walk.', type: 'spot', visited: false, cost: 200 },
-          { id: 'g5', time: '08:00 PM', location: 'Tito\'s Lane Nightlife', description: 'Dinner, live music, and evening walk on Tito\'s street.', type: 'restaurant', visited: false, cost: 3000 }
-        ]
-      },
-      {
-        id: 'day2',
-        dayNumber: 2,
-        title: 'Old Goa Heritage & Panjim Latin Quarter',
-        items: [
-          { id: 'g6', time: '09:30 AM', location: 'Basilica of Bom Jesus', description: 'UNESCO World Heritage 16th-century baroque architecture.', type: 'spot', visited: false, cost: 500 },
-          { id: 'g7', time: '12:30 PM', location: 'Fontainhas, Panjim', description: 'Colorful Portuguese villas and heritage photo walk.', type: 'spot', visited: false, cost: 0 },
-          { id: 'g8', time: '06:30 PM', location: 'Mandovi River Sunset Cruise', description: '2-hour cruise with Goan folk dance and DJ performance.', type: 'spot', visited: false, cost: 1800 }
-        ]
-      }
-    ]
-  }
-];
+// Empty default plans as requested: "remove the detailes of created default plans"
+export const seedPlans: TripPlan[] = [];

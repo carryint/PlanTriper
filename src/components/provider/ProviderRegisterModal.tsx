@@ -79,8 +79,13 @@ export const ProviderRegisterModal: React.FC<ProviderRegisterModalProps> = ({ is
       type: businessType,
       status: 'pending', // Pending admin approval
       name: businessName,
+      country: 'India',
+      city: finalDestination,
+      place: finalDestination,
+      postalCode: '',
       destination: finalDestination,
       address,
+      googleMapUrl: `https://maps.google.com/?q=${encodeURIComponent(`${businessName} ${finalDestination}`)}`,
       contact,
       website: website || undefined,
       googleRating: parseFloat(googleRating) || 4.5,

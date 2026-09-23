@@ -16,7 +16,7 @@ export const AITripPlannerModal: React.FC<AITripPlannerModalProps> = ({
 }) => {
   const { destinations, addPlan } = useAppStore();
 
-  const [destination, setDestination] = useState(initialDestination || destinations[0]?.name || 'Bali');
+  const [destination, setDestination] = useState(initialDestination || destinations[0]?.name || 'Kochi');
   const [daysCount, setDaysCount] = useState(3);
   const [travelersCount, setTravelersCount] = useState(2);
   const [transportMode, setTransportMode] = useState<'flight' | 'train' | 'bus' | 'rental'>('flight');
