@@ -10,6 +10,7 @@ import {
 import { AITripPlannerModal } from '../../components/planner/AITripPlannerModal';
 import { ManualTripPlannerModal } from '../../components/planner/ManualTripPlannerModal';
 import type { Service, ServiceType, TripPlan } from '../../types';
+import { autoDetectLocation } from '../../data/geoDirectory';
 
 export default function TravelerPortal() {
   const { destinations, services, plans, adBanners, toggleItemVisited, deletePlan, addPlan } = useAppStore();
@@ -23,6 +24,12 @@ export default function TravelerPortal() {
   const [isManualPlannerOpen, setIsManualPlannerOpen] = useState(false);
   const [manualPlannerCity, setManualPlannerCity] = useState<string | undefined>(undefined);
   const [activeView, setActiveView] = useState<'explore' | 'my-trips'>('explore');
+
+  // Reverse auto-detect location from search query
+  const detectedSearchLocation = useMemo(() => {
+    if (!searchQuery || searchQuery.trim().length < 2) return null;
+    return autoDetectLocation(searchQuery);
+  }, [searchQuery]);
 
   // Modal for Viewing a Curated Plan's Details
   const [selectedViewingPlan, setSelectedViewingPlan] = useState<TripPlan | null>(null);
@@ -288,6 +295,32 @@ export default function TravelerPortal() {
                     <Compass className="w-4 h-4 text-amber-300" /> Build Route
                   </button>
                 </div>
+
+                {/* Auto-detected location chip */}
+                {detectedSearchLocation && (
+                  <div className="flex flex-wrap items-center gap-2 p-2.5 bg-emerald-500/20 border border-emerald-400/40 rounded-xl text-emerald-200 text-xs font-medium backdrop-blur-md">
+                    <span className="px-2 py-0.5 bg-emerald-500 text-white rounded text-[10px] font-bold uppercase tracking-wider">
+                      Auto-Detected
+                    </span>
+                    <span>
+                      📍 <strong>{detectedSearchLocation.place}</strong>, {detectedSearchLocation.city}, {detectedSearchLocation.country}
+                      {detectedSearchLocation.postalCode && (
+                        <span className="ml-1.5 px-1.5 py-0.2 bg-emerald-900/60 rounded text-[11px] font-mono text-emerald-300">
+                          PIN: {detectedSearchLocation.postalCode}
+                        </span>
+                      )}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedDestinationFilter(detectedSearchLocation.city);
+                      }}
+                      className="ml-auto underline hover:text-white text-[11px] font-semibold"
+                    >
+                      Filter by {detectedSearchLocation.city} →
+                    </button>
+                  </div>
+                )}
 
                 {/* Quick Search Suggestions */}
                 <div className="flex flex-wrap items-center gap-1.5 text-xs">

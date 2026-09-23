@@ -10,6 +10,14 @@ import {
 import type { Service, ServiceType } from '../../types';
 import { convertTextToTripPlan, type ConvertedPlanResult } from '../../utils/planFileConverter';
 import { ManualTripPlannerModal } from '../../components/planner/ManualTripPlannerModal';
+import { 
+  getAllCountries, 
+  getCitiesByCountry, 
+  getPlacesByCity, 
+  findLocationByPostalCode, 
+  findLocationByPlaceName, 
+  autoDetectLocation 
+} from '../../data/geoDirectory';
 
 export default function AdminDashboard() {
   const { 
@@ -63,7 +71,109 @@ export default function AdminDashboard() {
   const [description, setDescription] = useState('');
   const [placeImages, setPlaceImages] = useState<string[]>([]);
   const [placeCreateSuccess, setPlaceCreateSuccess] = useState(false);
+  const [autoDetectedBadge, setAutoDetectedBadge] = useState<string | null>(null);
+  const [quickLocationQuery, setQuickLocationQuery] = useState('');
   const placeImageInputRef = useRef<HTMLInputElement>(null);
+
+  // Cascading Geography Hierarchy
+  const availableCountries = useMemo(() => getAllCountries(), []);
+
+  const availableCities = useMemo(() => {
+    if (country === 'other') return [];
+    return getCitiesByCountry(country);
+  }, [country]);
+
+  const availablePlaces = useMemo(() => {
+    if (country === 'other' || city === 'other') return [];
+    return getPlacesByCity(country, city);
+  }, [country, city]);
+
+  const handleCountryChange = (newCountry: string) => {
+    setCountry(newCountry);
+    if (newCountry !== 'other') {
+      const cities = getCitiesByCountry(newCountry);
+      const nextCity = cities[0] || '';
+      setCity(nextCity);
+      if (nextCity) {
+        const places = getPlacesByCity(newCountry, nextCity);
+        if (places.length > 0) {
+          setPlaceArea(places[0].name);
+          setPostalCode(places[0].postalCode);
+        } else {
+          setPlaceArea('');
+          setPostalCode('');
+        }
+      }
+    }
+  };
+
+  const handleCityChange = (newCity: string) => {
+    setCity(newCity);
+    if (newCity !== 'other' && country !== 'other') {
+      const places = getPlacesByCity(country, newCity);
+      if (places.length > 0) {
+        setPlaceArea(places[0].name);
+        setPostalCode(places[0].postalCode);
+      } else {
+        setPlaceArea('');
+        setPostalCode('');
+      }
+    }
+  };
+
+  const handlePlaceSelect = (placeNameSelected: string) => {
+    setPlaceArea(placeNameSelected);
+    const found = availablePlaces.find(p => p.name.toLowerCase() === placeNameSelected.toLowerCase());
+    if (found) {
+      setPostalCode(found.postalCode);
+      setAutoDetectedBadge(`PIN auto-filled for ${found.name}: ${found.postalCode}`);
+      setTimeout(() => setAutoDetectedBadge(null), 3000);
+    }
+  };
+
+  const handlePlaceInputChange = (val: string) => {
+    setPlaceArea(val);
+    const inCurrentCity = availablePlaces.find(p => p.name.toLowerCase() === val.toLowerCase());
+    if (inCurrentCity) {
+      setPostalCode(inCurrentCity.postalCode);
+      return;
+    }
+    const match = findLocationByPlaceName(val);
+    if (match) {
+      setCountry(match.country);
+      setCity(match.city);
+      setPlaceArea(match.place);
+      setPostalCode(match.postalCode);
+      setAutoDetectedBadge(`✨ Auto-detected Place: ${match.place} (${match.city}, ${match.country}) • PIN ${match.postalCode}`);
+      setTimeout(() => setAutoDetectedBadge(null), 4000);
+    }
+  };
+
+  const handlePostalCodeChange = (val: string) => {
+    setPostalCode(val);
+    const match = findLocationByPostalCode(val);
+    if (match) {
+      setCountry(match.country);
+      setCity(match.city);
+      setPlaceArea(match.place);
+      setPostalCode(match.postalCode);
+      setAutoDetectedBadge(`✨ Auto-detected from PIN "${val}": ${match.place}, ${match.city}, ${match.country}`);
+      setTimeout(() => setAutoDetectedBadge(null), 4000);
+    }
+  };
+
+  const handleQuickLocationAutoDetect = (val: string) => {
+    setQuickLocationQuery(val);
+    const match = autoDetectLocation(val);
+    if (match) {
+      setCountry(match.country);
+      setCity(match.city);
+      setPlaceArea(match.place);
+      setPostalCode(match.postalCode);
+      setAutoDetectedBadge(`✨ Auto-detected: ${match.place}, ${match.city}, ${match.country} (PIN: ${match.postalCode})`);
+      setTimeout(() => setAutoDetectedBadge(null), 4500);
+    }
+  };
 
   // Manual Planner Modal
   const [isManualPlannerOpen, setIsManualPlannerOpen] = useState(false);
@@ -502,31 +612,68 @@ export default function AdminDashboard() {
 
               {/* Geographic Details: Country, City, Place Area, Postal Code */}
               <div className="p-5 bg-slate-50 rounded-2xl border border-slate-200 space-y-4">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
-                  <MapPin className="w-4 h-4 text-blue-600" /> 2. Geographic & Location Details
-                </h3>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                  {/* Country Selection */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/80 pb-3">
                   <div>
-                    <label className="block text-xs font-medium text-slate-700 mb-1">Country *</label>
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
+                      <MapPin className="w-4 h-4 text-blue-600" /> 2. Geographic & Location Details
+                    </h3>
+                    <p className="text-[11px] text-slate-500 mt-0.5">
+                      Hierarchical database: Select Country → Filters Cities → Shows Neighborhoods → Auto-fills PIN code
+                    </p>
+                  </div>
+                  <span className="text-[11px] font-semibold text-blue-700 bg-blue-50 border border-blue-200 px-2.5 py-1 rounded-full self-start sm:self-auto">
+                    ⚡ Auto-Detect Enabled
+                  </span>
+                </div>
+
+                {/* Instant Auto-Detect / Paste Bar */}
+                <div className="bg-white p-3 rounded-2xl border border-blue-300 shadow-sm flex items-center gap-2.5 ring-2 ring-blue-500/10">
+                  <Sparkles className="w-4 h-4 text-amber-500 shrink-0" />
+                  <input
+                    type="text"
+                    value={quickLocationQuery}
+                    onChange={(e) => handleQuickLocationAutoDetect(e.target.value)}
+                    placeholder="⚡ Direct Paste / Search PIN (e.g. 682001, 683514) or Place (e.g. Cherai Beach, Fort Kochi, Palm Jumeirah)..."
+                    className="flex-1 text-xs text-slate-800 placeholder-slate-400 outline-none bg-transparent font-medium"
+                  />
+                  {quickLocationQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setQuickLocationQuery('')}
+                      className="text-slate-400 hover:text-slate-600 text-xs px-1 font-bold"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+
+                {/* Auto-detected Confirmation Alert */}
+                {autoDetectedBadge && (
+                  <div className="p-3 bg-emerald-100 border border-emerald-300 text-emerald-900 rounded-xl text-xs font-bold flex items-center gap-2 animate-in fade-in slide-in-from-top-1">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>{autoDetectedBadge}</span>
+                  </div>
+                )}
+
+                {/* 4 Cascading Form Columns Matching User Screenshot */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                  {/* Column 1: Country */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Country *</label>
                     <select
                       value={country}
-                      onChange={(e) => setCountry(e.target.value)}
-                      className="w-full px-3 py-2 text-xs font-semibold border border-slate-300 rounded-xl bg-white focus:ring-2 focus:ring-blue-500"
+                      onChange={(e) => handleCountryChange(e.target.value)}
+                      className="w-full px-3 py-2 text-xs font-bold border border-slate-300 rounded-xl bg-white focus:ring-2 focus:ring-blue-500 shadow-sm"
                     >
-                      <option value="India">India</option>
-                      <option value="United Arab Emirates">United Arab Emirates</option>
-                      <option value="Indonesia">Indonesia</option>
-                      <option value="France">France</option>
-                      <option value="United Kingdom">United Kingdom</option>
-                      <option value="United States">United States</option>
-                      <option value="Thailand">Thailand</option>
+                      {availableCountries.map(c => (
+                        <option key={c} value={c}>{c}</option>
+                      ))}
                       <option value="other">+ Enter Other Country</option>
                     </select>
                     {country === 'other' && (
                       <input
                         type="text"
+                        required
                         placeholder="Enter Country Name"
                         value={customCountry}
                         onChange={(e) => setCustomCountry(e.target.value)}
@@ -535,17 +682,24 @@ export default function AdminDashboard() {
                     )}
                   </div>
 
-                  {/* City Selection */}
+                  {/* Column 2: City / Destination */}
                   <div>
-                    <label className="block text-xs font-medium text-slate-700 mb-1">City / Destination *</label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-xs font-bold text-slate-700">City / Destination *</label>
+                      {availableCities.length > 0 && (
+                        <span className="text-[10px] text-blue-600 font-semibold">{availableCities.length} in {country}</span>
+                      )}
+                    </div>
                     <div className="space-y-1.5">
                       <select
                         value={city}
-                        onChange={(e) => setCity(e.target.value)}
-                        className="w-full px-3 py-2 text-xs font-semibold border border-slate-300 rounded-xl bg-white focus:ring-2 focus:ring-blue-500"
+                        onChange={(e) => handleCityChange(e.target.value)}
+                        className="w-full px-3 py-2 text-xs font-bold border border-slate-300 rounded-xl bg-white focus:ring-2 focus:ring-blue-500 shadow-sm"
                       >
-                        <option value="Kochi">Kochi</option>
-                        {distinctCities.filter(c => c.toLowerCase() !== 'kochi').map(c => (
+                        {availableCities.map(c => (
+                          <option key={c} value={c}>{c}</option>
+                        ))}
+                        {distinctCities.filter(c => !availableCities.includes(c) && c.toLowerCase() !== 'kochi').map(c => (
                           <option key={c} value={c}>{c}</option>
                         ))}
                         <option value="other">+ Add New City</option>
@@ -563,31 +717,91 @@ export default function AdminDashboard() {
                     </div>
                   </div>
 
-                  {/* Place / Neighborhood */}
+                  {/* Column 3: Place / Neighborhood with Auto-Suggest Datalist */}
                   <div>
-                    <label className="block text-xs font-medium text-slate-700 mb-1">Place / Neighborhood *</label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-xs font-bold text-slate-700">Place / Neighborhood *</label>
+                      {availablePlaces.length > 0 && (
+                        <span className="text-[10px] text-blue-600 font-semibold">{availablePlaces.length} in {city}</span>
+                      )}
+                    </div>
+                    <div className="space-y-1">
+                      <input
+                        list="city-places-list"
+                        type="text"
+                        required
+                        placeholder={availablePlaces[0]?.name || "e.g. Fort Kochi, Marine Drive"}
+                        value={placeArea}
+                        onChange={(e) => handlePlaceInputChange(e.target.value)}
+                        onPaste={(e) => {
+                          const pasted = e.clipboardData.getData('text');
+                          handlePlaceInputChange(pasted);
+                        }}
+                        className="w-full px-3 py-2 text-xs font-medium border border-slate-300 rounded-xl bg-white focus:ring-2 focus:ring-blue-500 shadow-sm"
+                      />
+                      <datalist id="city-places-list">
+                        {availablePlaces.map(p => (
+                          <option key={p.name} value={p.name}>
+                            {p.name} (PIN: {p.postalCode})
+                          </option>
+                        ))}
+                      </datalist>
+                    </div>
+                  </div>
+
+                  {/* Column 4: Postal Code / PIN with Auto-Detection */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-xs font-bold text-slate-700">Postal Code / PIN *</label>
+                      <span className="text-[10px] text-slate-400 font-medium">Auto-populates</span>
+                    </div>
                     <input
                       type="text"
                       required
-                      placeholder="e.g. Fort Kochi, Marine Drive"
-                      value={placeArea}
-                      onChange={(e) => setPlaceArea(e.target.value)}
-                      className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl bg-white focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-
-                  {/* Postal Code */}
-                  <div>
-                    <label className="block text-xs font-medium text-slate-700 mb-1">Postal Code / PIN *</label>
-                    <input
-                      type="text"
                       placeholder="e.g. 682001"
                       value={postalCode}
-                      onChange={(e) => setPostalCode(e.target.value)}
-                      className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl bg-white focus:ring-2 focus:ring-blue-500"
+                      onChange={(e) => handlePostalCodeChange(e.target.value)}
+                      onPaste={(e) => {
+                        const pasted = e.clipboardData.getData('text');
+                        handlePostalCodeChange(pasted);
+                      }}
+                      className="w-full px-3 py-2 text-xs font-mono font-bold border border-slate-300 rounded-xl bg-white focus:ring-2 focus:ring-blue-500 shadow-sm text-blue-900"
                     />
                   </div>
                 </div>
+
+                {/* Quick-Select Neighborhood Pills for the Selected City */}
+                {availablePlaces.length > 0 && (
+                  <div className="pt-2 border-t border-slate-200/80">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                        📍 Select Neighborhood in {city} (click to autofill Place & PIN):
+                      </span>
+                      <span className="text-[10px] text-slate-400">
+                        {availablePlaces.length} registered zones
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto pr-1">
+                      {availablePlaces.map(p => (
+                        <button
+                          key={p.name}
+                          type="button"
+                          onClick={() => handlePlaceSelect(p.name)}
+                          className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition flex items-center gap-1 ${
+                            placeArea.toLowerCase() === p.name.toLowerCase()
+                              ? 'bg-blue-600 text-white shadow-sm font-bold'
+                              : 'bg-white border border-slate-200 text-slate-700 hover:bg-blue-50 hover:border-blue-300'
+                          }`}
+                        >
+                          <span>{p.name}</span>
+                          <span className={`text-[10px] font-mono ${placeArea.toLowerCase() === p.name.toLowerCase() ? 'text-blue-100' : 'text-slate-400'}`}>
+                            ({p.postalCode})
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 {/* Google Maps URL & Physical Address */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
