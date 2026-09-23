@@ -4,7 +4,7 @@ import { useAppStore } from '../../store';
 import { seedPlans } from '../../data/seed';
 import type { TripPlan } from '../../types';
 import { 
-  decodePlanFromDataString, 
+  decompressPlanFromUrlParam,
   generateShareablePlanUrl, 
   copyPlanShareLink, 
   downloadPlanAsPdf 
@@ -18,7 +18,7 @@ import {
 export default function SharedPlanView() {
   const { planId } = useParams<{ planId: string }>();
   const [searchParams] = useSearchParams();
-  const { plans, addPlan } = useAppStore();
+  const { plans, services, addPlan } = useAppStore();
 
   const [copiedToast, setCopiedToast] = useState(false);
   const [savedToast, setSavedToast] = useState(false);
@@ -27,14 +27,25 @@ export default function SharedPlanView() {
   // Resolve plan from URL payload or store
   const plan: TripPlan | null = useMemo(() => {
     // 1. Try URL encoded payload first (cross-device universal link)
-    const dataParam = searchParams.get('data');
-    if (dataParam) {
-      const decoded = decodePlanFromDataString(dataParam);
+    // Check React Router searchParams, window.location.search, and hash string params
+    const hashQuery = searchParams.get('p') || searchParams.get('data');
+    const windowSearch = new URLSearchParams(window.location.search);
+    const windowQuery = windowSearch.get('p') || windowSearch.get('data');
+    let hashPartQuery: string | null = null;
+    if (typeof window !== 'undefined' && window.location.hash.includes('?')) {
+      const qIndex = window.location.hash.indexOf('?');
+      const hashParams = new URLSearchParams(window.location.hash.substring(qIndex));
+      hashPartQuery = hashParams.get('p') || hashParams.get('data');
+    }
+    const rawParam = hashQuery || windowQuery || hashPartQuery;
+
+    if (rawParam) {
+      const decoded = decompressPlanFromUrlParam(rawParam, services);
       if (decoded) return decoded;
     }
 
     // 2. Try looking up in local app store by ID
-    if (planId && plans) {
+    if (planId && plans && plans.length > 0) {
       const match = plans.find(p => p.id === planId);
       if (match) return match;
     }
@@ -47,7 +58,7 @@ export default function SharedPlanView() {
 
     // 4. Default to first available plan if any
     return plans?.[0] || seedPlans[0] || null;
-  }, [planId, searchParams, plans]);
+  }, [planId, searchParams, plans, services]);
 
   if (!plan) {
     return (

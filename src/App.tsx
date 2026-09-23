@@ -104,6 +104,8 @@ function App() {
         <Routes>
           {/* Public Shared Trip Plan View */}
           <Route path="plan/:planId" element={<SharedPlanView />} />
+          <Route path="/plan/:planId" element={<SharedPlanView />} />
+          <Route path="shared/plan/:planId" element={<SharedPlanView />} />
 
           <Route path="/" element={<Layout />}>
             {/* Direct link gives Admin Dashboard access only */}

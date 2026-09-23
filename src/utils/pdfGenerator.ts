@@ -1,60 +1,194 @@
-import type { TripPlan } from '../types';
+import type { TripPlan, Service } from '../types';
 
 /**
- * Universal Cross-Device Plan URL Serializer
- * Encodes the plan object into a URL-safe base64 string
+ * Compact Plan Serializer for Ultra-Short, Universal Shareable Links
  */
-export function encodePlanToDataString(plan: TripPlan): string {
+export function compressPlanToUrlParam(plan: TripPlan): string {
   try {
-    const json = JSON.stringify(plan);
-    // Unicode-safe base64 encoding
+    const compact = {
+      i: plan.id,
+      n: plan.name,
+      d: plan.destination || plan.city || 'Custom',
+      c: plan.city || plan.destination,
+      s: plan.startDate,
+      e: plan.endDate,
+      m: plan.transportMode,
+      tc: plan.travelersCount,
+      x: plan.totalExpenses,
+      img: plan.coverImage,
+      notes: plan.notes,
+      days: (plan.itinerary || []).map(day => ({
+        num: day.dayNumber,
+        title: day.title,
+        routeMap: day.routeMapUrl,
+        dist: day.totalDistanceKm,
+        driveMin: day.totalDriveMinutes,
+        startLoc: day.startLocationName,
+        startTime: day.startTime,
+        items: (day.items || []).map(it => ({
+          sid: it.serviceId,
+          loc: it.location,
+          time: it.time,
+          typ: it.type,
+          cost: it.cost,
+          img: it.imageUrl,
+          map: it.googleMapUrl,
+          tip: it.eventTip,
+          badge: it.idealTimingBadge,
+          desc: it.description ? it.description.slice(0, 160) : undefined,
+          transit: it.transitFromPrevious ? {
+            km: it.transitFromPrevious.distanceKm,
+            min: it.transitFromPrevious.durationMinutes,
+            from: it.transitFromPrevious.fromName
+          } : undefined
+        }))
+      }))
+    };
+
+    const json = JSON.stringify(compact);
+    // Standard URL-safe Base64
     const utf8Bytes = new TextEncoder().encode(json);
     let binary = '';
     for (let i = 0; i < utf8Bytes.length; i++) {
       binary += String.fromCharCode(utf8Bytes[i]);
     }
-    return encodeURIComponent(btoa(binary));
+    const base64 = btoa(binary)
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=+$/, '');
+
+    return base64;
   } catch (err) {
-    console.error('Error encoding plan:', err);
+    console.error('Error compressing plan:', err);
     return '';
   }
 }
 
 /**
- * Decodes plan object from URL-safe base64 string
+ * Decompresses Plan from URL parameter
  */
-export function decodePlanFromDataString(dataStr: string): TripPlan | null {
+export function decompressPlanFromUrlParam(paramStr: string, availableServices: Service[] = []): TripPlan | null {
   try {
-    const binary = atob(decodeURIComponent(dataStr));
+    let cleanStr = paramStr.trim();
+    try {
+      cleanStr = decodeURIComponent(cleanStr);
+    } catch {
+      // Keep cleanStr as is
+    }
+
+    // Direct JSON fallback for backwards compatibility
+    if (cleanStr.startsWith('{') && cleanStr.endsWith('}')) {
+      try {
+        const rawObj = JSON.parse(cleanStr);
+        if (rawObj.itinerary) return rawObj as TripPlan;
+      } catch {
+        // continue with base64
+      }
+    }
+
+    let base64 = cleanStr.replace(/-/g, '+').replace(/_/g, '/');
+    while (base64.length % 4) {
+      base64 += '=';
+    }
+    const binary = atob(base64);
     const bytes = new Uint8Array(binary.length);
     for (let i = 0; i < binary.length; i++) {
       bytes[i] = binary.charCodeAt(i);
     }
     const json = new TextDecoder().decode(bytes);
-    return JSON.parse(json) as TripPlan;
+    const compact = JSON.parse(json);
+
+    // Service map for fast hydration
+    const serviceMap = new Map<string, Service>();
+    availableServices.forEach(s => serviceMap.set(s.id, s));
+
+    const itinerary = (compact.days || []).map((d: any) => ({
+      id: `day_${d.num || 1}_${Date.now()}`,
+      dayNumber: d.num || 1,
+      title: d.title || `Day ${d.num || 1}`,
+      routeMapUrl: d.routeMap,
+      totalDistanceKm: d.dist,
+      totalDriveMinutes: d.driveMin,
+      startLocationName: d.startLoc,
+      startTime: d.startTime,
+      isOptimizedRoute: !!d.routeMap,
+      items: (d.items || []).map((it: any) => {
+        const refService = it.sid ? serviceMap.get(it.sid) : undefined;
+        const nameService = !refService && it.loc 
+          ? availableServices.find(s => s.name && s.name.toLowerCase() === it.loc.toLowerCase()) 
+          : undefined;
+        const matched = refService || nameService;
+
+        return {
+          id: `item_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+          time: it.time || '09:00 AM',
+          location: it.loc || matched?.name || 'Sightseeing Spot',
+          description: it.desc || matched?.description || '',
+          type: it.typ || matched?.type || 'spot',
+          visited: false,
+          cost: it.cost !== undefined ? it.cost : (matched?.pricePerDay || 0),
+          googleMapUrl: it.map || matched?.googleMapUrl,
+          imageUrl: it.img || matched?.images?.[0] || 'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?auto=format&fit=crop&w=600&q=80',
+          serviceId: it.sid || matched?.id,
+          eventTip: it.tip,
+          idealTimingBadge: it.badge,
+          transitFromPrevious: it.transit ? {
+            distanceKm: it.transit.km,
+            durationMinutes: it.transit.min,
+            fromName: it.transit.from || 'Previous Stop',
+            toName: it.loc
+          } : undefined
+        };
+      })
+    }));
+
+    return {
+      id: compact.i || `plan_${Date.now()}`,
+      travelerId: 'traveler1',
+      name: compact.n || 'Custom Trip Itinerary',
+      destination: compact.d || 'Goa',
+      city: compact.c || compact.d || 'Goa',
+      startDate: compact.s || new Date().toISOString().split('T')[0],
+      endDate: compact.e || new Date().toISOString().split('T')[0],
+      transportMode: compact.m || 'rental',
+      travelersCount: compact.tc || 2,
+      status: 'planned',
+      itinerary,
+      totalExpenses: compact.x || 0,
+      rewardPointsEarned: Math.round((compact.x || 0) / 100),
+      coverImage: compact.img || itinerary[0]?.items?.[0]?.imageUrl || 'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?auto=format&fit=crop&w=1200&q=80',
+      notes: compact.notes || 'Shared travel itinerary with verified spots & driving route.'
+    };
   } catch (err) {
-    console.error('Error decoding plan:', err);
+    console.error('Error decompressing plan from URL param:', err);
     return null;
   }
 }
 
 /**
- * Generates the full shareable URL for a plan
+ * Backwards compatibility helper for decoding plans
  */
-export function generateShareablePlanUrl(plan: TripPlan): string {
-  const origin = window.location.origin;
-  const pathname = window.location.pathname.endsWith('/') 
-    ? window.location.pathname 
-    : window.location.pathname + '/';
-  
-  const basePath = `${origin}${pathname}#/plan/${encodeURIComponent(plan.id)}`;
-  const data = encodePlanToDataString(plan);
-
-  return data ? `${basePath}?data=${data}` : basePath;
+export function decodePlanFromDataString(dataStr: string, availableServices: Service[] = []): TripPlan | null {
+  return decompressPlanFromUrlParam(dataStr, availableServices);
 }
 
 /**
- * Copies the shareable plan URL to the user's clipboard
+ * Generates the clean shareable URL for any plan
+ */
+export function generateShareablePlanUrl(plan: TripPlan): string {
+  const origin = window.location.origin;
+  const pathname = window.location.pathname.replace(/index\.html$/, '').replace(/\/$/, '');
+  const compressed = compressPlanToUrlParam(plan);
+
+  // Link format: https://carryint.github.io/PlanTriper/#/plan/plan_xxx?p=...
+  if (compressed) {
+    return `${origin}${pathname}/#/plan/${encodeURIComponent(plan.id)}?p=${compressed}`;
+  }
+  return `${origin}${pathname}/#/plan/${encodeURIComponent(plan.id)}`;
+}
+
+/**
+ * Copies the shareable plan URL to the clipboard
  */
 export async function copyPlanShareLink(plan: TripPlan): Promise<string> {
   const url = generateShareablePlanUrl(plan);
@@ -65,17 +199,18 @@ export async function copyPlanShareLink(plan: TripPlan): Promise<string> {
       const textArea = document.createElement('textarea');
       textArea.value = url;
       textArea.style.position = 'fixed';
-      textArea.style.opacity = '0';
+      textArea.style.left = '-999999px';
+      textArea.style.top = '-999999px';
       document.body.appendChild(textArea);
+      textArea.focus();
       textArea.select();
       document.execCommand('copy');
       document.body.removeChild(textArea);
     }
-    return url;
   } catch (err) {
-    console.warn('Clipboard write failed, returning URL directly:', err);
-    return url;
+    console.warn('Clipboard write fallback error:', err);
   }
+  return url;
 }
 
 /**
@@ -329,7 +464,6 @@ export function downloadPlanAsPdf(plan: TripPlan) {
 
       <script>
         window.onload = function() {
-          // Trigger print dialog automatically after styles render
           setTimeout(function() {
             window.print();
           }, 400);
