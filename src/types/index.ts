@@ -80,6 +80,13 @@ export interface AppTheme {
   customAdsEnabled: boolean;
 }
 
+export interface TransitInfo {
+  distanceKm: number;
+  durationMinutes: number;
+  fromName: string;
+  toName: string;
+}
+
 export interface ItineraryItem {
   id: string;
   time: string;
@@ -92,6 +99,10 @@ export interface ItineraryItem {
   googleMapUrl?: string;
   imageUrl?: string;
   serviceId?: string; // Reference to added spot
+  transitFromPrevious?: TransitInfo;
+  eventTip?: string;
+  idealTimingBadge?: string;
+  recommendedDurationMinutes?: number;
 }
 
 export interface ItineraryDay {
@@ -100,6 +111,12 @@ export interface ItineraryDay {
   date?: string;
   title: string;
   items: ItineraryItem[];
+  routeMapUrl?: string;
+  totalDistanceKm?: number;
+  totalDriveMinutes?: number;
+  startLocationName?: string;
+  startTime?: string;
+  isOptimizedRoute?: boolean;
 }
 
 export interface TripPlan {
