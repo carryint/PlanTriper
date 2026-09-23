@@ -328,12 +328,13 @@ export default function TravelerPortal() {
                   {[
                     'destinations and hotels in Kochi',
                     'beaches in Goa',
+                    'churches in Goa',
+                    'temples in Goa',
+                    'Basilica of Bom Jesus',
+                    'Shri Manguesh Temple',
                     'Palolem beach',
                     'Baga beach',
-                    'Querim beach',
-                    'Cherai beach',
-                    'bike rentals',
-                    'St. Francis Church'
+                    'Cherai beach'
                   ].map((chip) => (
                     <button
                       key={chip}

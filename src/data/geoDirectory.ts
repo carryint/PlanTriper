@@ -4039,6 +4039,172 @@ export const GEO_DATABASE: GeoCountry[] = [
               "South Goa Galgibaga Beach",
               "Galgibaga Beach Goa"
             ]
+          },
+          {
+            "name": "Basilica of Bom Jesus",
+            "postalCode": "403402",
+            "aliases": [
+              "Bom Jesus",
+              "Old Goa",
+              "St. Francis Xavier",
+              "Basilica"
+            ]
+          },
+          {
+            "name": "Sé Catedral de Santa Catarina",
+            "postalCode": "403402",
+            "aliases": [
+              "Se Cathedral",
+              "Old Goa",
+              "Golden Bell"
+            ]
+          },
+          {
+            "name": "Church of Our Lady of the Immaculate Conception",
+            "postalCode": "403001",
+            "aliases": [
+              "Immaculate Conception",
+              "Panaji Church",
+              "Panjim Church"
+            ]
+          },
+          {
+            "name": "Church of St. Francis of Assisi",
+            "postalCode": "403402",
+            "aliases": [
+              "St Francis of Assisi",
+              "Old Goa Church"
+            ]
+          },
+          {
+            "name": "Church of St. Cajetan",
+            "postalCode": "403402",
+            "aliases": [
+              "St Cajetan",
+              "Old Goa St Cajetan"
+            ]
+          },
+          {
+            "name": "Mae De Deus Church",
+            "postalCode": "403511",
+            "aliases": [
+              "Mae De Deus",
+              "Saligao Church"
+            ]
+          },
+          {
+            "name": "Church of Our Lady of the Mount",
+            "postalCode": "403402",
+            "aliases": [
+              "Our Lady of the Mount",
+              "Old Goa Mount Chapel"
+            ]
+          },
+          {
+            "name": "Church of the Holy Spirit",
+            "postalCode": "403601",
+            "aliases": [
+              "Holy Spirit Margao",
+              "Margao Church"
+            ]
+          },
+          {
+            "name": "Three Kings Chapel",
+            "postalCode": "403712",
+            "aliases": [
+              "Three Kings",
+              "Cansaulim Chapel",
+              "Cuelim Hill"
+            ]
+          },
+          {
+            "name": "St. Alex Church",
+            "postalCode": "403516",
+            "aliases": [
+              "St Alex",
+              "Calangute Church"
+            ]
+          },
+          {
+            "name": "Shri Manguesh Temple",
+            "postalCode": "403404",
+            "aliases": [
+              "Manguesh Temple",
+              "Mangeshi Temple",
+              "Priol Ponda"
+            ]
+          },
+          {
+            "name": "Shri Shantadurga Temple",
+            "postalCode": "403401",
+            "aliases": [
+              "Shantadurga Temple",
+              "Kavlem Ponda"
+            ]
+          },
+          {
+            "name": "Mahadeva Temple",
+            "postalCode": "403406",
+            "aliases": [
+              "Tambdi Surla",
+              "Mahadev Temple Tambdi Surla"
+            ]
+          },
+          {
+            "name": "Mahalasa Narayani Temple",
+            "postalCode": "403404",
+            "aliases": [
+              "Mahalasa Temple",
+              "Mardol Ponda"
+            ]
+          },
+          {
+            "name": "Mahalaxmi Temple",
+            "postalCode": "403401",
+            "aliases": [
+              "Mahalaxmi Bandivade",
+              "Ponda Mahalaxmi"
+            ]
+          },
+          {
+            "name": "Shri Saptakoteshwar Temple",
+            "postalCode": "403714",
+            "aliases": [
+              "Saptakoteshwar",
+              "Narve Bicholim"
+            ]
+          },
+          {
+            "name": "Shri Ramnath Temple",
+            "postalCode": "403401",
+            "aliases": [
+              "Ramnath Temple",
+              "Ramnathi Ponda"
+            ]
+          },
+          {
+            "name": "Shri Naguesh Maharudra Temple",
+            "postalCode": "403401",
+            "aliases": [
+              "Naguesh Temple",
+              "Bandora Ponda"
+            ]
+          },
+          {
+            "name": "Brahma Temple",
+            "postalCode": "403506",
+            "aliases": [
+              "Brahma Temple Goa",
+              "Brahma Karmali Sattari"
+            ]
+          },
+          {
+            "name": "Shri Damodar Temple",
+            "postalCode": "403705",
+            "aliases": [
+              "Damodar Temple",
+              "Zambaulim Sanguem"
+            ]
           }
         ]
       },

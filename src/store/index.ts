@@ -195,7 +195,7 @@ export const useAppStore = create<AppState>()(
       })),
 
       resetAll: () => {
-        localStorage.removeItem('plantriper-storage-v5');
+        localStorage.removeItem('plantriper-storage-v6');
         set({
           currentUser: seedUsers[0],
           theme: defaultTheme,
@@ -208,7 +208,7 @@ export const useAppStore = create<AppState>()(
       }
     }),
     {
-      name: 'plantriper-storage-v5',
+      name: 'plantriper-storage-v6',
             merge: (persistedState: any, currentState) => {
         const persistedServices: Service[] = persistedState?.services || [];
         const persistedIds = new Set(persistedServices.map(s => s.id));
